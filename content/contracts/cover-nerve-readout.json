@@ -1,0 +1,53 @@
+{
+  "kind": "metroplat.contract",
+  "id": "cover-nerve-readout",
+  "precondition": {
+    "id": "admissible-cover-nerve-counts",
+    "description": "The customer submits either JSON-RPC 2.0 or an ActivityStreams solicitation with natural-number entities, cells, and components, components no greater than entities, and entities no greater than cells plus components. The ActivityStreams path additionally requires provider-authored terms, their acceptance, and a capability attenuated to the exact request and provider-local write effect."
+  },
+  "move": {
+    "id": "project-cover-nerve-ranks",
+    "description": "The provider attests its pinned Obsmetrologia source bytes and evaluates the separately implemented executable projection. An ActivityStreams invocation also appends the provider's readout, receipt, seller-side book entry, message history, event, and EAVT projection.",
+    "domain": "admissible-cover-nerve-counts",
+    "codomain": "qualified-readout-or-typed-refusal",
+    "partial": false,
+    "deterministic": false,
+    "effects": [
+      "local-resource-measurement",
+      "response-evidence",
+      "provider-local-records-on-activitystreams-invocation"
+    ]
+  },
+  "postcondition": {
+    "id": "qualified-readout",
+    "description": "The response carries the computed ranks, exact source digests, theorem references, conformance scope, and local cost; the ActivityStreams response also carries its receipt and provider book reference. Neither carrier claims formal extraction, implementation equivalence, settled price, or authority over the customer."
+  },
+  "evidencePolicy": {
+    "required": true,
+    "records": [
+      "exact admitted mathematical source digests",
+      "Lean conformance examples",
+      "JavaScript regression vectors",
+      "RPC response or typed refusal",
+      "local CPU and wall-time readout",
+      "ActivityStreams ingress, offer, invocation, result or refusal, receipt, provider book entry, event, and EAVT facts when that carrier is used"
+    ]
+  },
+  "boundary": {
+    "customerOwned": [
+      "meaning and provenance of submitted counts",
+      "use of the returned readout",
+      "customer ledger and deployment"
+    ],
+    "providerOwned": [
+      "RPC implementation",
+      "ActivityStreams contract implementation",
+      "source-attestation policy",
+      "evidence qualification",
+      "provider refusal"
+    ],
+    "supplierOwned": [
+      "Obsmetrologia mathematical declarations and source history"
+    ]
+  }
+}

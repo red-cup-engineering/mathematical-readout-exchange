@@ -1,0 +1,47 @@
+{
+  "name": "@emsenn/mathematical-readout-exchange",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Union-facing OSS boundary for qualified executable projections grounded in Obsmetrologia mathematics.",
+  "keywords": [
+    "json-rpc",
+    "mathematical-readout",
+    "micro-enterprise",
+    "lenticule-science"
+  ],
+  "x-agentic-metro-enterprise": {
+    "node-id": "mathematical-readout-exchange",
+    "organizational-kind": "micro-enterprise",
+    "owners": [
+      "obsmetrological-services-section"
+    ],
+    "service-level": "union",
+    "admission": "JSON-RPC 2.0 carrying admissible CoverNerve counts",
+    "refusal": "invalid input, source drift, cross-settlement mutation, an unqualified equivalence claim, or unsettled pricing authority",
+    "implemented-operations": [
+      "attest-mathematical-source-bytes",
+      "project-cover-nerve-ranks",
+      "serve-local-http-json-rpc",
+      "serve-activitystreams-contract-over-stdio",
+      "issue-provider-local-receipt-book-and-causal-evidence",
+      "measure-local-resource-use"
+    ],
+    "unimplemented-operations": [
+      "formally-verified-Lean-extraction",
+      "ActivityPub-federation",
+      "x402-settlement",
+      "public-network-deployment"
+    ]
+  },
+  "bin": {
+    "solicit-service": "./src/contract-cover-nerve-readout.mjs",
+    "invoke-service": "./src/contract-cover-nerve-readout.mjs"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/server.test.mjs test/contract-cover-nerve-readout.test.mjs",
+    "verify": "node src/verify-enterprise.mjs && node --check src/server.mjs && node --check src/contract-cover-nerve-readout.mjs && node --test test/server.test.mjs test/contract-cover-nerve-readout.test.mjs && lake env lean scripts/Conformance.lean"
+  },
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,9 @@
+{
+  "enterprise": "mathematical-readout-exchange",
+  "offices": [
+    {
+      "id": "mathematical-readout-broker",
+      "record": "content/offices/mathematical-readout-broker.json"
+    }
+  ]
+}
