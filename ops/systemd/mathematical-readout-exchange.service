@@ -1,0 +1,17 @@
+[Unit]
+Description=Mathematical Readout Exchange local JSON-RPC provider
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/emsenn/info/lib/emsenn/services/561-group/services/lenticule-science/services/obsmetrological-services-section/services/mathematical-readout-exchange
+Environment=PORT=19851
+Environment=HOST=127.0.0.1
+ExecStart=/home/emsenn/.config/nvm/versions/node/v24.13.1/bin/node src/server.mjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

@@ -1,61 +1,45 @@
 #!/usr/bin/env node
 
-import { createHash } from "node:crypto";
-import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { semanticId } from "@emsenn/rmn-semantic-conformance";
+import { encodeRelationalValue } from "@emsenn/rmn-semantic-conformance/relational-value";
+import { createSettlementStore } from "@emsenn/rwil-rdf-services/client";
+
+import { COVER_NERVE_READOUT_CONTRACT } from "./law.mjs";
 import { attestMathematicalSources, computeCoverNerve } from "./server.mjs";
 
 const CONTEXT = "https://www.w3.org/ns/activitystreams";
 const ACTOR = "urn:ame:mathematical-readout-exchange";
-const CONTRACT = "cover-nerve-readout";
 const NODE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const EFFECTS = ["provider-local-rwil-evidence"];
 
-export function canonical(value) {
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
-  if (value && typeof value === "object") return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`;
-  return JSON.stringify(value);
+export function semanticDigest(value) {
+  const relational = encodeRelationalValue(value);
+  return semanticId(["ascribe", relational.type, relational.term]);
 }
-
-export function digest(value) {
-  return `sha256:${createHash("sha256").update(canonical(value)).digest("hex")}`;
-}
-
-function contentId(value) { return `urn:${digest(value)}`; }
+function identify(body) { return { id: semanticDigest(body), ...body }; }
+function contentValid(value) { const { id: _id, ...body } = value ?? {}; return value?.id === semanticDigest(body); }
 function operation() {
   const index = process.argv.indexOf("--operation");
   if (index >= 0) return process.argv[index + 1];
   const invoked = basename(process.argv[1] ?? "");
   return invoked === "solicit-service" || invoked === "invoke-service" ? invoked : "invoke-service";
 }
-function instant() {
-  const index = process.argv.indexOf("--now");
-  return index >= 0 ? process.argv[index + 1] : new Date().toISOString();
+function instant() { const index = process.argv.indexOf("--now"); return index >= 0 ? process.argv[index + 1] : new Date().toISOString(); }
+function response(type, source, object, at) {
+  return identify({ "@context": CONTEXT, type, actor: ACTOR, target: source?.actor ?? null,
+    inReplyTo: source?.id ?? null, law: COVER_NERVE_READOUT_CONTRACT, object, published: at });
 }
-function dataRoot(env = process.env) { return resolve(env.MATHEMATICAL_READOUT_EXCHANGE_DATA_ROOT ?? join(NODE_ROOT, "data")); }
-function dated(root, pool, type, at) {
-  const day = at.slice(0, 10); const [year, month, date] = day.split("-");
-  return join(root, pool, type, year, month, date, `${day}-mathematical-readout-exchange-${type}.jsonl`);
+async function append(store, category, record) {
+  await store.record({ category: `cover-nerve-readout-${category}`, recordedAt: record.published ?? record.recordedAt, record });
 }
-function append(root, pool, type, value, at) {
-  const path = dated(root, pool, type, at); mkdirSync(dirname(path), { recursive: true });
-  appendFileSync(path, `${JSON.stringify(value)}\n`, "utf8"); return path;
-}
-function response(type, source, object) {
-  return { "@context": CONTEXT, id: contentId({ actor: ACTOR, type, inReplyTo: source?.id ?? null, object }), type, actor: ACTOR, target: source?.actor ?? null, inReplyTo: source?.id ?? null, object };
-}
-function witness(root, source, outcome, at, details = {}) {
-  const body = { source: ACTOR, type: `org.emsenn.mathematical-readout-exchange.${outcome}`, subject: source?.id ?? "urn:activity:unidentified", time: at, data: { contract: CONTRACT, activityDigest: digest(source ?? null), ...details } };
-  const event = { specversion: "1.0", id: contentId(body), ...body, datacontenttype: "application/json" };
-  append(root, "journals", "events", event, at);
-  for (const [a, v] of [["activity/outcome", outcome], ["contract/id", CONTRACT], ...Object.entries(details).filter(([, value]) => typeof value === "string")]) {
-    append(root, "journals", "eavt", { e: body.subject, a, v, t: event.id }, at);
-  }
-}
-function reject(root, source, reason, at) {
-  const value = response("Reject", source, { type: "Refusal", contract: CONTRACT, reason });
-  append(root, "journals", "activitystreams", value, at); witness(root, source, "activity.rejected", at, { reason }); return value;
+async function reject(store, source, reason, at) {
+  const value = response("Reject", source, { type: "CoverNerveReadoutRefusal", law: COVER_NERVE_READOUT_CONTRACT,
+    reason, prohibitedEffectsPerformed: false, customerMutation: false, foreignMutation: false }, at);
+  await append(store, "refusals", value); return value;
 }
 function isNat(value) { return typeof value === "number" && Number.isSafeInteger(value) && value >= 0; }
 
@@ -74,79 +58,71 @@ export function requestProblem(request) {
   }
   return null;
 }
-
 function solicitationProblem(activity) {
-  if (activity?.["@context"] !== CONTEXT || activity.type !== "Offer" || activity.target !== ACTOR || activity.object?.type !== "ServiceSolicitation") return "solicitation must be an ActivityStreams Offer<ServiceSolicitation> addressed to Mathematical Readout Exchange";
-  if (activity.object.contract !== CONTRACT) return `solicitation must name ${CONTRACT}`;
+  if (activity?.["@context"] !== CONTEXT || activity.type !== "Offer" || activity.target !== ACTOR
+      || activity.object?.type !== "ServiceSolicitation") return "solicitation must be an ActivityStreams Offer<ServiceSolicitation> addressed to Mathematical Readout Exchange";
+  if (activity.object.contract !== COVER_NERVE_READOUT_CONTRACT) return "solicitation must name the exact normalized RMN law";
   return requestProblem(activity.object.request);
 }
-
-function solicit(root, activity, at) {
-  append(root, "journals", "activitystreams", activity, at);
-  const invalid = solicitationProblem(activity); if (invalid) return reject(root, activity, invalid, at);
+async function solicit(store, activity, at) {
+  const invalid = solicitationProblem(activity); if (invalid) return reject(store, activity, invalid, at);
   const request = structuredClone(activity.object.request);
-  const consideration = { type: "InternalValueAgreement", amount: 1, unit: "cover-nerve-readout-credit", settlementProtocol: "bilateral-receipt", x402Applicable: false, rationale: "Internal reciprocal value only; not money or a firm-wide settled denomination." };
-  const object = {
-    type: "ExecutableServiceOffer", contract: CONTRACT, sourceActivity: activity.id,
-    request, requestDigest: digest(request),
-    commodity: { type: "ServiceCommodity", id: "urn:commodity:mathematical-readout-exchange:cover-nerve", quantity: 1, unit: "qualified-readout" },
-    consideration, considerationDigest: digest(consideration), operation: "invoke-service", effects: ["provider-local-write"],
-    evidence: ["source-attestation", "provider-local-readout", "provider-local-receipt", "provider-local-book-entry", "completion-or-typed-refusal"],
-  };
-  const offer = response("Offer", activity, object);
-  append(root, "journals", "activitystreams", offer, at); witness(root, activity, "offer.emitted", at, { offer: offer.id, requestDigest: object.requestDigest }); return offer;
+  const terms = { type: "UnpricedServiceTerms", law: COVER_NERVE_READOUT_CONTRACT, assetPaymentRequired: false,
+    resourceMeasures: ["compute-seconds", "wall-time-seconds"], witInterchangeabilityClaimed: false,
+    erasureInterchangeabilityClaimed: false, gasInterchangeabilityClaimed: false };
+  const object = { type: "ExecutableServiceOffer", law: COVER_NERVE_READOUT_CONTRACT, sourceActivity: activity.id,
+    request, requestDigest: semanticDigest(request), terms, termsDigest: semanticDigest(terms), operation: "invoke-service",
+    effects: EFFECTS, evidence: ["source-attestation", "provider-local-rwil-evidence", "typed-resource-measures", "completion-or-typed-refusal"] };
+  const offer = response("Offer", activity, object, at); await append(store, "offers", offer); return offer;
 }
-
 function invocationProblem(activity) {
   if (activity?.["@context"] !== CONTEXT || activity.type !== "Accept" || activity.target !== ACTOR) return "invocation must be an ActivityStreams Accept addressed to Mathematical Readout Exchange";
-  const contract = activity.object; const offer = contract?.offer;
-  if (contract?.type !== "ServiceContract" || contract.contract !== CONTRACT) return `invocation must accept ${CONTRACT}`;
-  if (offer?.type !== "Offer" || offer.actor !== ACTOR || offer.object?.type !== "ExecutableServiceOffer" || offer.object.contract !== CONTRACT) return "ServiceContract must carry this provider's authored offer";
-  if (offer.object.requestDigest !== digest(offer.object.request)) return "accepted request differs from provider-authored bytes";
-  if (offer.object.considerationDigest !== digest(offer.object.consideration)) return "accepted consideration differs from provider-authored bytes";
-  if (contract.considerationAcceptance?.termDigest !== offer.object.considerationDigest) return "customer did not accept the provider-authored consideration";
+  const contract = activity.object; const offer = contract?.offer; const terms = offer?.object?.terms;
+  if (contract?.type !== "ServiceContract" || contract.law !== COVER_NERVE_READOUT_CONTRACT) return "invocation must accept the exact normalized RMN law";
+  if (offer?.type !== "Offer" || offer.actor !== ACTOR || offer.law !== COVER_NERVE_READOUT_CONTRACT || !contentValid(offer)
+      || offer.object?.type !== "ExecutableServiceOffer" || offer.object.law !== COVER_NERVE_READOUT_CONTRACT) return "ServiceContract must carry this provider's exact authored offer";
+  if (offer.object.requestDigest !== semanticDigest(offer.object.request)) return "accepted request differs from provider-authored term";
+  if (offer.object.termsDigest !== semanticDigest(terms) || contract.termsAcceptance?.termDigest !== offer.object.termsDigest) return "customer did not accept the provider-authored terms";
   const capability = contract.capability;
   if (capability?.type !== "Capability" || capability.holder !== ACTOR || capability.invocationTarget !== ACTOR) return "invocation requires a capability held by this provider";
   if (capability.parentOffer !== offer.id || capability.attenuation?.requestDigest !== offer.object.requestDigest) return "capability is not attenuated to the accepted offer";
   if (capability.capTP?.target !== ACTOR || capability.capTP.method !== "invoke-service" || !(capability.allowedActions ?? []).includes("invoke-service")) return "capability does not authorize the exact invoke-service method";
-  if (!(capability.allowedActions ?? []).includes("provider-local-write") || (capability.allowedActions ?? []).includes("customer-write")) return "capability must permit only the provider-local effect";
+  if (!EFFECTS.every((effect) => (capability.allowedActions ?? []).includes(effect)) || (capability.allowedActions ?? []).includes("customer-write")) return "capability must permit only provider-local RWIL evidence";
   return null;
 }
-
-function invoke(root, activity, at) {
-  append(root, "journals", "activitystreams", activity, at);
-  const invalid = invocationProblem(activity); if (invalid) return reject(root, activity, invalid, at);
+async function invoke(store, activity, at) {
+  const invalid = invocationProblem(activity); if (invalid) return reject(store, activity, invalid, at);
   const offer = activity.object.offer; const request = offer.object.request;
   const wallStart = process.hrtime.bigint(); const cpuStart = process.cpuUsage();
   let result;
-  try {
-    result = { ...computeCoverNerve(request), certificate: attestMathematicalSources() };
-  } catch (error) {
-    return reject(root, activity, `readout could not settle: ${error.message}`, at);
-  }
+  try { result = { ...computeCoverNerve(request), certificate: attestMathematicalSources() }; }
+  catch (error) { return reject(store, activity, `readout-could-not-settle:${error.message}`, at); }
   const cpu = process.cpuUsage(cpuStart);
-  const cost = { "fuel-consumed": (cpu.user + cpu.system) / 1e6, "wall-time-seconds": Number(process.hrtime.bigint() - wallStart) / 1e9, denomination: "mathematical-readout-exchange-cpu-seconds", settled: false };
-  const exchange = { id: contentId({ request, result, at }), type: "CoverNerveReadout", outcome: "completion", request, requestDigest: offer.object.requestDigest, result, cost, readAt: at, customerTerritoryMutation: false };
-  append(root, "records", "readouts", exchange, at);
-  const buyer = activity.actor;
-  const receiptCore = { type: "BilateralSettlementReceipt", contract: CONTRACT, seller: ACTOR, buyer, offer: offer.id, acceptedBy: activity.id, commodity: offer.object.commodity, consideration: offer.object.consideration, fulfillmentDigest: digest(exchange), outcome: exchange.outcome, settledAt: at, payment: { protocol: "bilateral-internal-value", x402Receipt: null, monetaryClaim: false } };
-  const receipt = { id: contentId(receiptCore), ...receiptCore };
-  const sellerEntry = { id: contentId({ side: "seller", receipt: receipt.id }), type: "ValueLedgerEntry", side: "seller", direction: "credit", account: ACTOR, counterparty: buyer, receipt: receipt.id, amount: 1, unit: "cover-nerve-readout-credit", recordedAt: at };
-  append(root, "records", "receipts", receipt, at); append(root, "records", "books", sellerEntry, at);
-  const reply = response("Accept", activity, { type: "CoverNerveReadoutResult", contract: CONTRACT, exchange, receipt, providerBookEntry: sellerEntry.id, customerTerritoryMutation: false });
-  append(root, "journals", "activitystreams", reply, at); witness(root, activity, "contract.completed", at, { receipt: receipt.id, readout: exchange.id }); return reply;
+  const resources = { type: "TypedResourceVector", computeSeconds: (cpu.user + cpu.system) / 1e6,
+    wallTimeSeconds: Number(process.hrtime.bigint() - wallStart) / 1e9, assetAmount: null, wit: null, erasure: null, gas: null };
+  const exchange = identify({ type: "CoverNerveReadout", law: COVER_NERVE_READOUT_CONTRACT, outcome: "completion",
+    request, requestDigest: offer.object.requestDigest, result, resources, recordedAt: at,
+    customerMutation: false, foreignMutation: false });
+  const receipt = identify({ type: "ServicePerformanceReceipt", law: COVER_NERVE_READOUT_CONTRACT, provider: ACTOR,
+    customer: activity.actor, offer: offer.id, invocation: activity.id, fulfillment: exchange.id,
+    outcome: exchange.outcome, recordedAt: at, assetSettlementClaimed: false });
+  const reply = response("Accept", activity, { type: "CoverNerveReadoutResult", law: COVER_NERVE_READOUT_CONTRACT,
+    exchange, receipt, customerMutation: false, foreignMutation: false }, at);
+  await append(store, "readouts", exchange); await append(store, "receipts", receipt); await append(store, "results", reply);
+  return reply;
 }
 
-export function run(activity, op = "invoke-service", at = new Date().toISOString(), env = process.env) {
-  const root = dataRoot(env);
-  if (op === "solicit-service") return solicit(root, activity, at);
-  if (op === "invoke-service") return invoke(root, activity, at);
-  return reject(root, activity, `unknown provider operation ${op}`, at);
+export async function run(activity, op = "invoke-service", at = new Date().toISOString(), options = {}) {
+  const dataRoot = resolve(options.dataRoot ?? process.env.MATHEMATICAL_READOUT_EXCHANGE_DATA_ROOT ?? join(NODE_ROOT, "data"));
+  const store = createSettlementStore({ settlementRoot: NODE_ROOT, dataRoot, agentUrl: options.agentUrl ?? process.env.RWIL_RDF_AGENT });
+  if (op === "solicit-service") return solicit(store, activity, at);
+  if (op === "invoke-service") return invoke(store, activity, at);
+  return reject(store, activity, `unknown-provider-operation:${op}`, at);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const output = run(JSON.parse(readFileSync(0, "utf8")), operation(), instant());
+    const output = await run(JSON.parse(readFileSync(0, "utf8")), operation(), instant());
     process.stdout.write(`${JSON.stringify(output, null, 2)}\n`); if (output.type === "Reject") process.exitCode = 2;
   } catch (error) { process.stderr.write(`mathematical-readout-exchange: ${error.message}\n`); process.exitCode = 1; }
 }

@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { attestMathematicalSources } from "./server.mjs";
+import { COVER_NERVE_READOUT_CONTRACT } from "./law.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const required = [
@@ -12,7 +13,7 @@ const required = [
   "lib/management/roster.json",
   "content/offices/mathematical-readout-broker.json",
   "content/services/cover-nerve-readout.json",
-  "content/contracts/cover-nerve-readout.json",
+  "content/contracts/cover-nerve-readout.rml",
   "src/server.mjs",
   "src/contract-cover-nerve-readout.mjs",
   "scripts/Conformance.lean",
@@ -30,6 +31,11 @@ if (!enterprise?.["unimplemented-operations"]?.includes("formally-verified-Lean-
 }
 if (!enterprise?.["implemented-operations"]?.includes("serve-activitystreams-contract-over-stdio")) {
   failures.push("ActivityStreams contract operation is not advertised");
+}
+for (const operation of ["solicit-service", "invoke-service"]) {
+  if (enterprise?.["operation-catalog"]?.[operation]?.contract !== COVER_NERVE_READOUT_CONTRACT) {
+    failures.push(`${operation} does not bind the exact normalized RMN law`);
+  }
 }
 try {
   attestMathematicalSources();

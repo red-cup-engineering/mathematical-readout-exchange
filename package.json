@@ -4,6 +4,12 @@
   "private": true,
   "type": "module",
   "description": "Union-facing OSS boundary for qualified executable projections grounded in Obsmetrologia mathematics.",
+  "exports": {
+    "./relational-graph": {
+      "types": "./types/relational-graph.d.mts",
+      "import": "./src/relational-graph.mjs"
+    }
+  },
   "keywords": [
     "json-rpc",
     "mathematical-readout",
@@ -12,19 +18,21 @@
   ],
   "x-agentic-metro-enterprise": {
     "node-id": "mathematical-readout-exchange",
+    "actor": "urn:ame:mathematical-readout-exchange",
     "organizational-kind": "micro-enterprise",
     "owners": [
       "obsmetrological-services-section"
     ],
     "service-level": "union",
-    "admission": "JSON-RPC 2.0 carrying admissible CoverNerve counts",
+    "admission": "the exact normalized RMN cover-nerve law carried by an ActivityStreams solicitation with admissible CoverNerve counts",
     "refusal": "invalid input, source drift, cross-settlement mutation, an unqualified equivalence claim, or unsettled pricing authority",
     "implemented-operations": [
       "attest-mathematical-source-bytes",
       "project-cover-nerve-ranks",
+      "project-finite-relational-graph-metrology",
       "serve-local-http-json-rpc",
       "serve-activitystreams-contract-over-stdio",
-      "issue-provider-local-receipt-book-and-causal-evidence",
+      "issue-provider-local-rwil-receipt-and-causal-evidence",
       "measure-local-resource-use"
     ],
     "unimplemented-operations": [
@@ -32,7 +40,19 @@
       "ActivityPub-federation",
       "x402-settlement",
       "public-network-deployment"
-    ]
+    ],
+    "operation-catalog": {
+      "solicit-service": {
+        "contract": "ni:///sha-256;3TCTDawHwIXDnxWPQYzDZc6YhhERQkmO_n9wi06sxlQ",
+        "accepts": "ActivityStreams Offer<ServiceSolicitation>",
+        "returns": "ActivityStreams Offer|Reject"
+      },
+      "invoke-service": {
+        "contract": "ni:///sha-256;3TCTDawHwIXDnxWPQYzDZc6YhhERQkmO_n9wi06sxlQ",
+        "accepts": "ActivityStreams Accept<ServiceContract>",
+        "returns": "ActivityStreams Accept|Reject"
+      }
+    }
   },
   "bin": {
     "solicit-service": "./src/contract-cover-nerve-readout.mjs",
@@ -40,8 +60,13 @@
   },
   "scripts": {
     "start": "node src/server.mjs",
-    "test": "node --test test/server.test.mjs test/contract-cover-nerve-readout.test.mjs",
-    "verify": "node src/verify-enterprise.mjs && node --check src/server.mjs && node --check src/contract-cover-nerve-readout.mjs && node --test test/server.test.mjs test/contract-cover-nerve-readout.test.mjs && lake env lean scripts/Conformance.lean"
+    "test": "node --test test/*.test.mjs",
+    "verify": "node src/verify-enterprise.mjs && node --check src/law.mjs && node --check src/server.mjs && node --check src/contract-cover-nerve-readout.mjs && node --check src/relational-graph.mjs && node --test test/*.test.mjs && lake env lean scripts/Conformance.lean"
+  },
+  "dependencies": {
+    "@emsenn/http-server": "file:../../../../../red-cup-engineering/services/web-services-section/services/http-server",
+    "@emsenn/rmn-semantic-conformance": "file:../rmn-semantic-conformance",
+    "@emsenn/rwil-rdf-services": "file:../rwil-rdf-services"
   },
   "license": "UNLICENSED"
 }

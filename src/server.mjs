@@ -3,6 +3,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
+import { start } from "@emsenn/http-server/server";
 
 const SOURCES = [
   {
@@ -157,43 +158,56 @@ function respond(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-export function createRpcServer() {
-  return createServer((req, res) => {
-    if (req.method !== "POST") {
-      respond(res, 405, { error: "POST only" });
+// The raw request-handling logic, unchanged, shared by the back-compat bare
+// server and the canonical @emsenn/http-server-hosted App below.
+function handleRpcRequest(req, res) {
+  if (req.method !== "POST") {
+    respond(res, 405, { error: "POST only" });
+    return;
+  }
+  let body = "";
+  req.on("data", (chunk) => {
+    body += chunk;
+    if (body.length > 1_000_000) req.destroy();
+  });
+  req.on("end", () => {
+    let parsed;
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      respond(res, 200, { jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } });
       return;
     }
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk;
-      if (body.length > 1_000_000) req.destroy();
-    });
-    req.on("end", () => {
-      let parsed;
-      try {
-        parsed = JSON.parse(body);
-      } catch {
-        respond(res, 200, { jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } });
-        return;
-      }
-      if (Array.isArray(parsed) && parsed.length === 0) {
-        respond(res, 200, { jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid Request" } });
-        return;
-      }
-      const batch = Array.isArray(parsed) ? parsed : [parsed];
-      const responses = batch.map(handleRpc).filter((response) => response !== null);
-      respond(res, 200, Array.isArray(parsed) ? responses : responses[0] ?? {});
-    });
+    if (Array.isArray(parsed) && parsed.length === 0) {
+      respond(res, 200, { jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid Request" } });
+      return;
+    }
+    const batch = Array.isArray(parsed) ? parsed : [parsed];
+    const responses = batch.map(handleRpc).filter((response) => response !== null);
+    respond(res, 200, Array.isArray(parsed) ? responses : responses[0] ?? {});
   });
 }
 
-export function startRpcServer({ port = Number(process.env.PORT ?? 8737) } = {}) {
+/** Back-compat: a bare Node http.Server, unchanged shape for any direct caller/test. */
+export function createRpcServer() {
+  return createServer(handleRpcRequest);
+}
+
+/** Canonical @emsenn/http-server App: one catch-all resource wrapping the same handler. */
+export function readoutExchangeApp() {
+  return {
+    resources: [{
+      match: () => true,
+      handler: (ctx) => { handleRpcRequest(ctx.req, ctx.res); },
+    }],
+  };
+}
+
+export async function startRpcServer({ port = Number(process.env.PORT ?? 8737), host = process.env.HOST ?? "127.0.0.1" } = {}) {
   attestMathematicalSources();
-  const server = createRpcServer();
-  server.listen(port, () => {
-    const address = server.address();
-    process.stdout.write(`mathematical-readout-exchange rpc listening on :${address.port}\n`);
-  });
+  const { server, address } = await start(readoutExchangeApp(), { port, host });
+  const resolvedPort = typeof address === "object" && address ? address.port : port;
+  process.stdout.write(`mathematical-readout-exchange rpc listening on ${host}:${resolvedPort}\n`);
   return server;
 }
 

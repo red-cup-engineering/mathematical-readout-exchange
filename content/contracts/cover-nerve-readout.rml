@@ -1,0 +1,11 @@
+#lang rmn/v2
+(map
+  ("type" "CoverNerveReadoutLaw")
+  ("version" 1)
+  ("provider" "urn:ame:mathematical-readout-exchange")
+  ("precondition" "The customer supplies natural-number entity, cell, and component counts satisfying components no greater than entities and entities no greater than cells plus components, together with source authority and a capability attenuated to provider-local RWIL evidence.")
+  ("operation" "The provider attests pinned Obsmetrologia source bytes and evaluates the bounded cover-nerve projection without writing the customer interior.")
+  ("postcondition" "The provider returns computed ranks, source attestations, theorem references, conformance scope, typed resource measures, and a witnessed service receipt. No formal-extraction, price-settlement, implementation-equivalence, or customer-authority claim is created.")
+  ("refusal" "Refuse malformed counts, changed normalized terms, missing exact capability, source drift, cross-settlement writes, fake payment equivalence, or an unqualified mathematical claim.")
+  ("protocol" "ActivityStreams-2.0")
+  ("evidence" "RWIL-RDF"))
