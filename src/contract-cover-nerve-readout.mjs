@@ -9,7 +9,7 @@ import { encodeRelationalValue } from "@emsenn/rmn-semantic-conformance/relation
 import { createSettlementStore } from "@emsenn/rwil-rdf-services/client";
 
 import { COVER_NERVE_READOUT_CONTRACT } from "./law.mjs";
-import { attestMathematicalSources, computeCoverNerve } from "./server.mjs";
+import { attestMathematicalSources, computeCoverNerve } from "./cover-nerve.mjs";
 
 const CONTEXT = "https://www.w3.org/ns/activitystreams";
 const ACTOR = "urn:ame:mathematical-readout-exchange";

@@ -1,0 +1,22 @@
+[Unit]
+Description=Bare Cedar Fog Mathematical Readout Exchange A2A provider
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/emsenn/info/lib/emsenn/services/561-group/services/lenticule-science/services/obsmetrological-services-section/services/mathematical-readout-exchange
+Environment=PORT=8813
+Environment=HOST=127.0.0.1
+Environment=BASE_URL=https://bare-cedar-fog.561.group/a2a/mathematical-readout-exchange
+Environment=AGENT_CARD_SIGNING_KEY=/home/emsenn/info/lib/emsenn/services/561-group/services/lenticule-science/services/obsmetrological-services-section/services/mathematical-readout-exchange/data/agent-card-signing/ed25519-private.pem
+Environment=AGENT_CARD_JWKS=/home/emsenn/info/lib/emsenn/services/561-group/services/lenticule-science/services/obsmetrological-services-section/services/mathematical-readout-exchange/content/agent-card-signing/jwks.json
+Environment=AGENT_CARD_SIGNING_KID=mathematical-readout-exchange-2026-07-24
+ExecStart=/home/emsenn/.config/nvm/versions/node/v24.13.1/bin/node bin/serve-a2a.mjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

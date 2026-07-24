@@ -2,7 +2,8 @@
 
 This is the union-facing service settlement of the Obsmetrological Services
 Section. It projects bounded computations that are grounded in separately
-owned Obsmetrologia mathematics across an explicit JSON-RPC boundary.
+owned Obsmetrologia mathematics across a signed A2A 1.0 boundary and an
+ActivityStreams contract boundary.
 
 ## Settlement law
 
@@ -13,10 +14,12 @@ owned Obsmetrologia mathematics across an explicit JSON-RPC boundary.
   proof that the JavaScript implementation is definitionally equal to Lean.
 - The service MUST refuse operation if its admitted mathematical source bytes
   do not match the digests under which its conformance evidence was produced.
-- The service owns its RPC implementation and readout records. It never writes
+- The service owns its A2A implementation and readout records. It never writes
   its mathematical supplier, its customer, or another settlement's ledger.
-- Local HTTP JSON-RPC and ActivityStreams values over process standard input
-  are the implemented carriers. The ActivityStreams contract owns admission,
+- The signed A2A 1.0 face (bin/serve-a2a.mjs, RMN mark parts) and
+  ActivityStreams values over process standard input are the implemented
+  carriers. A2A is this die's only served network face — no JSON-RPC or other
+  side-channel RPC is preserved. The ActivityStreams contract owns admission,
   provider-authored terms, capability attenuation, receipt, book, event, EAVT,
   and refusal. ActivityPub transport, x402 settlement, and public-network
   operation remain absent.
@@ -25,6 +28,6 @@ owned Obsmetrologia mathematics across an explicit JSON-RPC boundary.
 
 ## Roster
 
-- **mathematical-readout-broker** — owns the RPC boundary, source attestation,
+- **mathematical-readout-broker** — owns the A2A boundary, source attestation,
   ActivityStreams contract boundary, source attestation, conformance evidence,
   provider-local books, typed refusals, and truthful qualification of results.

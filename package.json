@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Union-facing OSS boundary for qualified executable projections grounded in Obsmetrologia mathematics.",
+  "main": "src/cover-nerve.mjs",
   "exports": {
     "./relational-graph": {
       "types": "./types/relational-graph.d.mts",
@@ -11,7 +12,7 @@
     }
   },
   "keywords": [
-    "json-rpc",
+    "a2a",
     "mathematical-readout",
     "micro-enterprise",
     "lenticule-science"
@@ -24,13 +25,13 @@
       "obsmetrological-services-section"
     ],
     "service-level": "union",
-    "admission": "the exact normalized RMN cover-nerve law carried by an ActivityStreams solicitation with admissible CoverNerve counts",
+    "admission": "an A2A RMN Mark request naming admissible CoverNerve counts, or the exact normalized RMN cover-nerve law carried by an ActivityStreams solicitation with admissible CoverNerve counts",
     "refusal": "invalid input, source drift, cross-settlement mutation, an unqualified equivalence claim, or unsettled pricing authority",
     "implemented-operations": [
       "attest-mathematical-source-bytes",
       "project-cover-nerve-ranks",
       "project-finite-relational-graph-metrology",
-      "serve-local-http-json-rpc",
+      "serve-signed-a2a",
       "serve-activitystreams-contract-over-stdio",
       "issue-provider-local-rwil-receipt-and-causal-evidence",
       "measure-local-resource-use",
@@ -38,11 +39,17 @@
     ],
     "unimplemented-operations": [
       "formally-verified-Lean-extraction",
+      "serve-local-http-json-rpc",
       "ActivityPub-federation",
       "x402-settlement",
       "public-network-deployment"
     ],
     "operation-catalog": {
+      "obsmetrologia.coverNerve.rank": {
+        "transport": "a2a-1.0-rmn-cbor",
+        "accepts": "{ entities: number, cells: number, components: number } — non-negative safe integers satisfying the CoverNerve bounds",
+        "returns": "{ h0rank, h1rank, coordinationFree, landauerBits, coordinationCost, cost, certificate }"
+      },
       "solicit-service": {
         "contract": "ni:///sha-256;3TCTDawHwIXDnxWPQYzDZc6YhhERQkmO_n9wi06sxlQ",
         "accepts": "ActivityStreams Offer<ServiceSolicitation>",
@@ -56,15 +63,22 @@
     }
   },
   "bin": {
+    "serve-mathematical-readout-exchange-a2a": "./bin/serve-a2a.mjs",
+    "execute-mathematical-readout-exchange-a2a-task": "./bin/execute-a2a-task.mjs",
     "solicit-service": "./src/contract-cover-nerve-readout.mjs",
     "invoke-service": "./src/contract-cover-nerve-readout.mjs"
   },
   "scripts": {
-    "start": "node src/server.mjs",
+    "start": "node bin/serve-a2a.mjs",
+    "serve:a2a": "node bin/serve-a2a.mjs",
     "test": "node --test test/*.test.mjs",
-    "verify": "node src/verify-enterprise.mjs && node --check src/law.mjs && node --check src/server.mjs && node --check src/contract-cover-nerve-readout.mjs && node --check src/relational-graph.mjs && node --test test/*.test.mjs && lake env lean scripts/Conformance.lean"
+    "verify": "node src/verify-enterprise.mjs && node --check src/law.mjs && node --check src/cover-nerve.mjs && node --check bin/serve-a2a.mjs && node --check bin/execute-a2a-task.mjs && node --check src/contract-cover-nerve-readout.mjs && node --check src/relational-graph.mjs && node --test test/*.test.mjs && lake env lean scripts/Conformance.lean"
   },
   "dependencies": {
+    "@a2a-js/sdk": "1.0.0-beta.0",
+    "@emsenn/a2a-agent-card-key-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-agent-card-key-service",
+    "@emsenn/a2a-contracted-agent-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-contracted-agent-service",
+    "@emsenn/a2a-rmn-part-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-rmn-part-service",
     "@emsenn/http-server": "file:../../../../../red-cup-engineering/services/web-services-section/services/http-server",
     "@emsenn/rmn-semantic-conformance": "file:../rmn-semantic-conformance",
     "@emsenn/rwil-rdf-services": "file:../rwil-rdf-services"

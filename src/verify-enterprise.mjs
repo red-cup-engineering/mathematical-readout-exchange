@@ -3,7 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { attestMathematicalSources } from "./server.mjs";
+import { attestMathematicalSources } from "./cover-nerve.mjs";
 import { COVER_NERVE_READOUT_CONTRACT } from "./law.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -14,10 +14,15 @@ const required = [
   "content/offices/mathematical-readout-broker.json",
   "content/services/cover-nerve-readout.json",
   "content/contracts/cover-nerve-readout.rml",
-  "src/server.mjs",
+  "content/agent-cards/mathematical-readout-exchange.json",
+  "content/agent-card-signing/jwks.json",
+  "data/agent-card-signing/ed25519-private.pem",
+  "src/cover-nerve.mjs",
   "src/contract-cover-nerve-readout.mjs",
+  "bin/execute-a2a-task.mjs",
+  "bin/serve-a2a.mjs",
   "scripts/Conformance.lean",
-  "test/server.test.mjs",
+  "test/cover-nerve.test.mjs",
   "test/contract-cover-nerve-readout.test.mjs",
   "package.json",
 ];

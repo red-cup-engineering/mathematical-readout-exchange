@@ -2,9 +2,9 @@
   "id": "mathematical-readout-broker",
   "name": "mathematical readout broker",
   "kind": "office",
-  "normative-structure": "The qualification, source attestation, conformance evidence, cost readout, response, and refusal of a mathematical RPC projection are this office's own acts.",
+  "normative-structure": "The qualification, source attestation, conformance evidence, cost readout, response, and refusal of a mathematical projection served over the signed A2A face and the ActivityStreams contract boundary are this office's own acts.",
   "deontic-profile": {
-    "operate-json-rpc-boundary": "duty",
+    "operate-a2a-contract-boundary": "duty",
     "attest-admitted-source-bytes": "duty",
     "qualify-conformance-without-overclaim": "duty",
     "issue-bounded-readout": "deontic-power",
@@ -13,5 +13,14 @@
   },
   "jurisdiction": "mathematical-readout-exchange",
   "part-of": "obsmetrological-services-section",
-  "reports-to": []
+  "reports-to": [],
+  "theory-basis": [
+    "this die's own prior JSON-RPC contract-boundary pattern, carried over to a signed A2A face",
+    "occupation-entropy-broker's signed-A2A source-attestation contract-boundary pattern",
+    "CoverNerve H0/H1 rank and Landauer-bit coordination cost (Obsmetrologia/Cohomology) as the office's governed subject matter"
+  ],
+  "x-provenance": {
+    "recorded-by": "claude/executive-officer-to-the-leader",
+    "recorded-on": "2026-07-24"
+  }
 }

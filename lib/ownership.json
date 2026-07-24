@@ -8,7 +8,7 @@
     "direct-contracting": true,
     "owner-gateway-required": false,
     "rules": [
-      "every result crosses this settlement's declared JSON-RPC contract",
+      "every result crosses this settlement's signed A2A face or its ActivityStreams contract boundary",
       "source attestation and regression conformance are not formal extraction",
       "the provider never writes a supplier or customer settlement"
     ]

@@ -1,0 +1,166 @@
+{
+  "name": "Mathematical Readout Exchange",
+  "description": "Serves the CoverNerve rank readout of an entities/cells/components triple — H0 rank, H1 rank, coordination-free flag, Landauer bits, coordination cost — as a signed A2A 1.0 face over a pure computation, source-pinned against Obsmetrologia/Cohomology/CoordinationCohomology.lean and Obsmetrologia/Cohomology/LandauerEntropy.lean.",
+  "supportedInterfaces": [
+    {
+      "url": "${BASE_URL}/a2a/jsonrpc",
+      "protocolBinding": "JSONRPC",
+      "tenant": "",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "${BASE_URL}/a2a/rest",
+      "protocolBinding": "HTTP+JSON",
+      "tenant": "",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "url": "https://emsenn.net/",
+    "organization": "Mathematical Readout Exchange via A2A Services Section"
+  },
+  "version": "1.0.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extensions": [
+      {
+        "uri": "ni:///sha-256;wzh-zYeFQCsh4zAzGS34uacNV4qJeIEmCKIUUWyRZ-M",
+        "description": "Signed sovereign M1 black-box circuit interface inhabited by this endpoint.",
+        "required": true,
+        "params": {
+          "profile": "org.emsenn.rmn.sovereign-circuit-interface.v1",
+          "account": "eip155:31337:0x9d1ea98d85fcfa2b38a6c7fb1e839ae25da714a7",
+          "authority": "ni:///sha-256;jct_PvmTV9NTzMxTiYfdz0QzwKjrRo1Pxi2ovahwzdU",
+          "custody": "ni:///sha-256;3kQGeUr8ymqgmnP1cK6JpbtBKnz0S6uy1qLTOJ0XkKI",
+          "territory": "ni:///sha-256;YHdwhKjzKGI6nG115wJ4uYjDvYzn5ADF7S9B_9fQmKI",
+          "component": {
+            "profile": "org.emsenn.rmn.hierarchical-circuit.v3",
+            "law": "ni:///sha-256;sTlolLAsS0M4Ti_jFjEf2qWdhZiFgxz8Vs7JQ6oEZHE",
+            "ports": [
+              {
+                "name": "coverNerve",
+                "direction": "input",
+                "predicate": "ni:///sha-256;sTlolLAsS0M4Ti_jFjEf2qWdhZiFgxz8Vs7JQ6oEZHE",
+                "carrier": "ni:///sha-256;zE539IZJjlXOLy2nwMC0xoR_0iQBuzvIxyHVYc3UGGY",
+                "mode": "tensor"
+              },
+              {
+                "name": "readout",
+                "direction": "output",
+                "predicate": "ni:///sha-256;sTlolLAsS0M4Ti_jFjEf2qWdhZiFgxz8Vs7JQ6oEZHE",
+                "carrier": "ni:///sha-256;zE539IZJjlXOLy2nwMC0xoR_0iQBuzvIxyHVYc3UGGY",
+                "mode": "tensor"
+              }
+            ],
+            "instances": [],
+            "nets": [],
+            "behavior": {
+              "factors": [
+                {
+                  "inputs": [
+                    "coverNerve"
+                  ],
+                  "outputs": [
+                    "readout"
+                  ],
+                  "rows": [
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": true
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": true
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "extendedAgentCard": false
+  },
+  "securitySchemes": {},
+  "securityRequirements": [],
+  "defaultInputModes": [
+    "application/rmn+cbor"
+  ],
+  "defaultOutputModes": [
+    "application/rmn+cbor"
+  ],
+  "skills": [
+    {
+      "id": "compute-cover-nerve-rank",
+      "name": "Compute CoverNerve rank readout",
+      "description": "Accepts one RMN Mark carrying a JSON {\"entities\":number,\"cells\":number,\"components\":number} request and returns h0rank, h1rank, coordinationFree, landauerBits, coordinationCost, a source-pinning certificate, and measured local cost, specified by Obsmetrologia/Cohomology/CoordinationCohomology.lean and Obsmetrologia/Cohomology/LandauerEntropy.lean and pinned by sha256.",
+      "tags": [
+        "rmn",
+        "a2a",
+        "obsmetrologia",
+        "cohomology",
+        "cover-nerve",
+        "landauer"
+      ],
+      "examples": [],
+      "inputModes": [
+        "application/rmn+cbor"
+      ],
+      "outputModes": [
+        "application/rmn+cbor"
+      ],
+      "securityRequirements": []
+    }
+  ],
+  "signatures": []
+}
