@@ -33,7 +33,8 @@
       "serve-local-http-json-rpc",
       "serve-activitystreams-contract-over-stdio",
       "issue-provider-local-rwil-receipt-and-causal-evidence",
-      "measure-local-resource-use"
+      "measure-local-resource-use",
+      "declare-resource-vector-price-terms"
     ],
     "unimplemented-operations": [
       "formally-verified-Lean-extraction",

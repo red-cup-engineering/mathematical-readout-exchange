@@ -39,13 +39,39 @@ test("the exact RMN law settles a source-attested readout through RWIL", async (
   const offer = await execute(solicitation(), "solicit-service", root);
   assert.equal(offer.type, "Offer"); assert.equal(offer.object.requestDigest, semanticDigest(offer.object.request));
   assert.equal(offer.object.terms.assetPaymentRequired, false);
+  // The offer's terms carry an explicit resource-price declaration: which of
+  // the six canonical dimensions are charged, how, and -- for erasure --
+  // the price IS the request's own computed landauerBits (h1rank = 1 for
+  // this fixture: cells 3 + components 1 - entities 3).
+  const priceByDimension = Object.fromEntries(offer.object.terms.resourcePrice.dimensions.map((d) => [d.dimension, d]));
+  assert.deepEqual(Object.keys(priceByDimension).sort(), ["asset", "compute", "erasure", "gas", "time", "wit"].sort());
+  assert.equal(priceByDimension.asset.priced, false);
+  assert.equal(priceByDimension.gas.priced, false);
+  assert.equal(priceByDimension.wit.priced, false);
+  assert.equal(priceByDimension.compute.priced, true); assert.equal(priceByDimension.compute.quantity, null);
+  assert.equal(priceByDimension.time.priced, true); assert.equal(priceByDimension.time.quantity, null);
+  assert.equal(priceByDimension.erasure.priced, true); assert.equal(priceByDimension.erasure.quantity, 1);
+  assert.match(priceByDimension.erasure.method, /Obsmetrologia\.Landauer\.landauerBits/);
   const result = await execute(acceptance(offer), "invoke-service", root);
   assert.equal(result.type, "Accept"); assert.equal(result.object.exchange.result.h1rank, 1);
   assert.equal(result.object.exchange.result.certificate.assurance.kind, "source-pinned-executable-projection");
   assert.equal(result.object.receipt.provider, PROVIDER); assert.equal(result.object.customerMutation, false);
   assert.equal(result.object.receipt.assetSettlementClaimed, false);
   assert.deepEqual(Object.keys(result.object.exchange.resources).sort(),
-    ["assetAmount", "computeSeconds", "erasure", "gas", "type", "wallTimeSeconds", "wit"].sort());
+    ["assetAmount", "computeSeconds", "cpuMicroseconds", "erasure", "gas", "peakRssBytes",
+      "timeMilliseconds", "type", "wallTimeSeconds", "wit"].sort());
+  // The cover-nerve erasure price equals the computed landauerBits exactly,
+  // both in the quoted terms and in the actual completion vector -- it is
+  // math, not a measurement, so quote and actual coincide for this dimension.
+  assert.equal(result.object.exchange.result.landauerBits, 1);
+  assert.equal(result.object.exchange.resources.erasure, 1);
+  assert.deepEqual(result.object.exchange.quotedResourcePrice, offer.object.terms.resourcePrice);
+  assert.equal(typeof result.object.exchange.resources.cpuMicroseconds, "number");
+  assert.ok(result.object.exchange.resources.cpuMicroseconds >= 0);
+  assert.equal(typeof result.object.exchange.resources.peakRssBytes, "number");
+  assert.ok(result.object.exchange.resources.peakRssBytes > 0);
+  assert.equal(typeof result.object.exchange.resources.timeMilliseconds, "number");
+  assert.ok(result.object.exchange.resources.timeMilliseconds >= 0);
   const graphDirectory = join(root, "rwil", "2026", "07", "18");
   assert.equal(readdirSync(graphDirectory).length >= 3, true);
   assert.equal(readFileSync(join(graphDirectory, readdirSync(graphDirectory)[0]), "utf8").includes("urn:emsenn:rwil:category"), true);
