@@ -2,8 +2,14 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { userRmnMessage } from "@emsenn/a2a-rmn-part-service";
-import { semanticBytes, decodeSemantic } from "@emsenn/rmn-semantic-conformance";
-import { attestMathematicalSources, computeCoverNerve } from "../src/cover-nerve.mjs";
+import { semanticBytes } from "@emsenn/rmn-semantic-conformance-die";
+import { computeCoverNerve } from "@emsenn/cover-nerve-rank-die/function";
+import {
+  decodeCoverNerveResult,
+  encodeCoverNerveRequest,
+  executeCoverNerveDie,
+} from "@emsenn/cover-nerve-rank-die";
+import { attestMathematicalSources } from "../src/mathematical-source-attestation.mjs";
 import { executeA2aMessage } from "../bin/execute-a2a-task.mjs";
 
 test("admitted mathematical source bytes still match", () => {
@@ -33,20 +39,36 @@ test("non-safe-integer counts are refused", () => {
 });
 
 function requestMessage(payload) {
-  return userRmnMessage(semanticBytes(["mark", JSON.stringify(payload)]), "cover-nerve-request.rmn.cbor");
+  return userRmnMessage(encodeCoverNerveRequest(payload).bytes, "cover-nerve-request.rmn.cbor");
 }
+
+test("logic die has canonical typed RMN pinout and deterministic identity", () => {
+  const request = encodeCoverNerveRequest({ entities: 3, cells: 3, components: 1 });
+  const first = executeCoverNerveDie(request.bytes);
+  const second = executeCoverNerveDie(request.bytes);
+  assert.equal(first.inputId, request.id);
+  assert.equal(first.id, second.id);
+  assert.deepEqual(decodeCoverNerveResult(first.bytes).value, {
+    kind: "CoverNerveRankResult.v1",
+    h0rank: 1,
+    h1rank: 1,
+    coordinationFree: false,
+    landauerBits: 1,
+    coordinationCost: 1,
+  });
+});
 
 test("A2A executor: coverNerve happy path round-trip", async () => {
   const response = await executeA2aMessage(requestMessage({ entities: 3, cells: 3, components: 1 }));
   assert.equal(response.metadata.disposition, "completion");
   const part = response.parts.find((p) => p.mediaType === "application/rmn+cbor");
   assert.ok(part, "response carries one RMN part");
-  const term = decodeSemantic(Buffer.from(part.raw, "base64"));
-  assert.equal(term[0], "mark");
-  const result = JSON.parse(term[1]);
+  const result = decodeCoverNerveResult(Buffer.from(part.raw, "base64")).value;
   assert.equal(result.h1rank, 1);
-  assert.equal(result.cost.denomination, "mathematical-readout-exchange-cpu-seconds");
-  assert.equal(result.certificate.library, "@emsenn/obsmetrologia");
+  assert.equal(response.metadata.resourceEffects.denomination, "mathematical-readout-exchange-cpu-seconds");
+  assert.equal(response.metadata.mathematicalSourceCertificate.library, "@emsenn/obsmetrologia");
+  assert.match(response.metadata.requestNi, /^ni:\/\/\/sha-256;/);
+  assert.match(response.metadata.responseNi, /^ni:\/\/\/sha-256;/);
 });
 
 test("A2A executor: an inadmissible CoverNerve is refused, not completed", async () => {
@@ -56,7 +78,7 @@ test("A2A executor: an inadmissible CoverNerve is refused, not completed", async
   );
 });
 
-test("A2A executor: a non-Mark request term is refused", async () => {
+test("A2A executor: a non-ascribed request term is refused", async () => {
   const message = userRmnMessage(semanticBytes(["pair", ["mark", "a"], ["mark", "b"]]), "cover-nerve-request.rmn.cbor");
-  await assert.rejects(() => executeA2aMessage(message), /one RMN Mark term/);
+  await assert.rejects(() => executeA2aMessage(message), /one typed RMN value/);
 });

@@ -25,10 +25,12 @@ This readout is specified by
 `.h1_vanishes_iff_forest`, `.h1rank_is_coordination_cost`,
 `Obsmetrologia.Landauer.landauerBits`, `.landauer_zero_iff_reversible`,
 `.landauer_eq_coordination_cost`). The Lean files' bytes are pinned by sha256
-in `src/cover-nerve.mjs`; every served answer attaches a `certificate`
+in `src/mathematical-source-attestation.mjs`; every served answer attaches a `certificate`
 recomputing those digests on every call and refusing to answer if the pinned
-bytes have drifted. The JavaScript in this die is a separate implementation,
-not an extraction from the Lean.
+bytes have drifted. The separately released
+`@emsenn/cover-nerve-rank-die@1.0.0` provides the executable projection; it
+is not an extraction from Lean. This enterprise consumes that immutable release
+artifact rather than retaining a second local implementation.
 
 ## A2A face
 

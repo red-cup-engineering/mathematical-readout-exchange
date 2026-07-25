@@ -6,50 +6,21 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Message, Role } from "@a2a-js/sdk";
 import { extractRmnPart, rmnPart } from "@emsenn/a2a-rmn-part-service";
-import { decodeSemantic, semanticBytes } from "@emsenn/rmn-semantic-conformance";
-import { attestMathematicalSources, computeCoverNerve } from "../src/cover-nerve.mjs";
+import {
+  decodeCoverNerveRequest,
+  executeCoverNerveDie,
+} from "@emsenn/cover-nerve-rank-die";
+import { attestMathematicalSources } from "../src/mathematical-source-attestation.mjs";
 
-// The die's A2A request/response shape is one RMN Mark term whose label is a
-// JSON string — the same pragmatic mark-payload convention the LISS Groq
-// provider uses for its instruction/input Marks (see
-// groq-inference-team/src/execute-rmn-inference.mjs operationMarks()) and the
-// sibling occupation-entropy-readout die, rather than the full typed
-// effect-cell/relational-value machinery: the signed A2A face is a stateless
-// pure-function readout with no owned law, no settlement, and no independent
-// evidence to witness. (The ActivityStreams contract face over
-// src/contract-cover-nerve-readout.mjs is the separate, unchanged carrier
-// that does own law, capability attenuation, and provider-local evidence.)
-function decodeRequest(bytes) {
-  const term = decodeSemantic(bytes);
-  if (!Array.isArray(term) || term.length !== 2 || term[0] !== "mark" || typeof term[1] !== "string") {
-    throw new Error("mathematical-readout-exchange request must be one RMN Mark term carrying a JSON-object label");
-  }
-  let payload;
-  try {
-    payload = JSON.parse(term[1]);
-  } catch (error) {
-    throw new Error(`mathematical-readout-exchange Mark label is not valid JSON: ${error.message}`);
-  }
-  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
-    throw new Error("mathematical-readout-exchange Mark label must decode to a JSON object carrying entities, cells, components");
-  }
-  return payload;
-}
-
-function encodeResult(value) {
-  const term = ["mark", JSON.stringify(value)];
-  return { bytes: semanticBytes(term) };
-}
-
-function measuredReadout(params) {
+function measuredReadout(inputBytes) {
   const wallStart = process.hrtime.bigint();
   const cpuStart = process.cpuUsage();
-  const readout = computeCoverNerve(params);
+  const dieResult = executeCoverNerveDie(inputBytes);
   const cpu = process.cpuUsage(cpuStart);
   return {
-    ...readout,
+    dieResult,
     certificate: attestMathematicalSources(),
-    cost: {
+    resourceEffects: {
       "fuel-consumed": (cpu.user + cpu.system) / 1e6,
       "wall-time-seconds": Number(process.hrtime.bigint() - wallStart) / 1e9,
       denomination: "mathematical-readout-exchange-cpu-seconds",
@@ -62,18 +33,20 @@ export async function executeA2aMessage(source) {
   const message = Message.fromJSON(source);
   if (message.role !== Role.ROLE_USER) throw new Error("mathematical-readout-exchange requires an A2A ROLE_USER message");
   const input = extractRmnPart(message.parts);
-  const request = decodeRequest(input.bytes);
-  const result = measuredReadout(request);
-  const output = encodeResult(result);
+  decodeCoverNerveRequest(input.bytes);
+  const result = measuredReadout(input.bytes);
   return Message.toJSON({
     messageId: randomUUID(),
     contextId: message.contextId,
     taskId: message.taskId,
     role: Role.ROLE_AGENT,
-    parts: [rmnPart(output.bytes, "cover-nerve-result.rmn.cbor")],
+    parts: [rmnPart(result.dieResult.bytes, "cover-nerve-result.rmn.cbor")],
     metadata: {
       disposition: "completion",
       requestNi: input.ni,
+      responseNi: result.dieResult.id,
+      mathematicalSourceCertificate: result.certificate,
+      resourceEffects: result.resourceEffects,
     },
     extensions: [],
     referenceTaskIds: [],

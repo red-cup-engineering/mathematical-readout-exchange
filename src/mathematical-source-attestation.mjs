@@ -1,11 +1,3 @@
-#!/usr/bin/env node
-// cover-nerve.mjs — the die's pure computation, specified by
-// Obsmetrologia/Cohomology/CoordinationCohomology.lean and
-// Obsmetrologia/Cohomology/LandauerEntropy.lean and pinned to their exact
-// source bytes. Served exclusively over the signed A2A face
-// (bin/serve-a2a.mjs + bin/execute-a2a-task.mjs); consumers that must not
-// block on transport import these functions directly as their fallback.
-
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
@@ -49,6 +41,7 @@ export function attestMathematicalSources() {
   const drift = observed.filter((record) => !record.matches);
   if (drift.length) {
     const error = new Error("admitted Obsmetrologia source bytes have drifted; conformance evidence is stale");
+    error.code = "mathematical-source-drift";
     error.data = { sources: observed };
     throw error;
   }
@@ -61,30 +54,5 @@ export function attestMathematicalSources() {
       conformance: "Lean examples and JavaScript regression vectors exercise the same admitted cases",
       limitation: "the JavaScript is separately implemented and is not a formally verified extraction from Lean",
     },
-  };
-}
-
-function isNat(value) {
-  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
-}
-
-export function computeCoverNerve({ entities, cells, components } = {}) {
-  if (![entities, cells, components].every(isNat)) {
-    throw new Error("entities, cells, components must be non-negative safe integers");
-  }
-  if (components > entities) {
-    throw new Error("not an admissible CoverNerve: components must be no greater than entities");
-  }
-  if (entities > cells + components) {
-    throw new Error("not an admissible CoverNerve: entities must be no greater than cells plus components");
-  }
-  const h0rank = components;
-  const h1rank = cells + components - entities;
-  return {
-    h0rank,
-    h1rank,
-    coordinationFree: h1rank === 0,
-    landauerBits: h1rank,
-    coordinationCost: h1rank,
   };
 }

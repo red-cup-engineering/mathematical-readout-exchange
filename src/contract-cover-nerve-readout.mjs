@@ -4,12 +4,13 @@ import { readFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { semanticId } from "@emsenn/rmn-semantic-conformance";
-import { encodeRelationalValue } from "@emsenn/rmn-semantic-conformance/relational-value";
+import { semanticId } from "@emsenn/rmn-semantic-conformance-die";
+import { encodeRelationalValue } from "@emsenn/rmn-semantic-conformance-die/relational-value";
 import { createSettlementStore } from "@emsenn/rwil-rdf-services/client";
 
 import { COVER_NERVE_READOUT_CONTRACT } from "./law.mjs";
-import { attestMathematicalSources, computeCoverNerve } from "./cover-nerve.mjs";
+import { computeCoverNerve } from "@emsenn/cover-nerve-rank-die/function";
+import { attestMathematicalSources } from "./mathematical-source-attestation.mjs";
 
 const CONTEXT = "https://www.w3.org/ns/activitystreams";
 const ACTOR = "urn:ame:mathematical-readout-exchange";

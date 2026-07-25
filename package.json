@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Union-facing OSS boundary for qualified executable projections grounded in Obsmetrologia mathematics.",
-  "main": "src/cover-nerve.mjs",
+  "main": "src/contract-cover-nerve-readout.mjs",
   "exports": {
     "./relational-graph": {
       "types": "./types/relational-graph.d.mts",
@@ -72,7 +72,7 @@
     "start": "node bin/serve-a2a.mjs",
     "serve:a2a": "node bin/serve-a2a.mjs",
     "test": "node --test test/*.test.mjs",
-    "verify": "node src/verify-enterprise.mjs && node --check src/law.mjs && node --check src/cover-nerve.mjs && node --check bin/serve-a2a.mjs && node --check bin/execute-a2a-task.mjs && node --check src/contract-cover-nerve-readout.mjs && node --check src/relational-graph.mjs && node --test test/*.test.mjs && lake env lean scripts/Conformance.lean"
+    "verify": "node src/verify-enterprise.mjs && node --check src/law.mjs && node --check bin/serve-a2a.mjs && node --check bin/execute-a2a-task.mjs && node --check src/contract-cover-nerve-readout.mjs && node --check src/relational-graph.mjs && node --test test/*.test.mjs && lake env lean scripts/Conformance.lean"
   },
   "dependencies": {
     "@a2a-js/sdk": "1.0.0-beta.0",
@@ -80,7 +80,8 @@
     "@emsenn/a2a-contracted-agent-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-contracted-agent-service",
     "@emsenn/a2a-rmn-part-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-rmn-part-service",
     "@emsenn/http-server": "file:../../../../../red-cup-engineering/services/web-services-section/services/http-server",
-    "@emsenn/rmn-semantic-conformance": "file:../rmn-semantic-conformance",
+    "@emsenn/cover-nerve-rank-die": "https://github.com/emsenn/cover-nerve-rank-die/releases/download/v1.0.0/emsenn-cover-nerve-rank-die-1.0.0.tgz",
+    "@emsenn/rmn-semantic-conformance-die": "https://github.com/emsenn/rmn-semantic-conformance-die/releases/download/v6.0.0/emsenn-rmn-semantic-conformance-die-6.0.0.tgz",
     "@emsenn/rwil-rdf-services": "file:../rwil-rdf-services"
   },
   "license": "UNLICENSED"

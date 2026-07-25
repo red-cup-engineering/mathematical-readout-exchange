@@ -1,4 +1,4 @@
-import { semanticId } from "@emsenn/rmn-semantic-conformance";
+import { semanticId } from "@emsenn/rmn-semantic-conformance-die";
 
 function refuse(message) {
   const error = new RangeError(message);
