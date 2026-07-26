@@ -6,6 +6,7 @@
   "description": "Union-facing OSS boundary for qualified executable projections grounded in Obsmetrologia mathematics.",
   "main": "src/contract-cover-nerve-readout.mjs",
   "exports": {
+    "./client": "./src/client.mjs",
     "./relational-graph": {
       "types": "./types/relational-graph.d.mts",
       "import": "./src/relational-graph.mjs"
@@ -79,6 +80,8 @@
     "@emsenn/a2a-agent-card-key-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-agent-card-key-service",
     "@emsenn/a2a-contracted-agent-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-contracted-agent-service",
     "@emsenn/a2a-rmn-part-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-rmn-part-service",
+    "@emsenn/a2a-rmn-task-client-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-rmn-task-client-service",
+    "@emsenn/rmn-semantic-conformance": "file:../../../../../red-cup-engineering/services/model-services-section/services/relational-model-services-section/services/relational-model-notation-services-section/services/rmn-conformance-service",
     "@emsenn/http-server": "file:../../../../../red-cup-engineering/services/web-services-section/services/http-server",
     "@emsenn/cover-nerve-rank-die": "https://github.com/emsenn/cover-nerve-rank-die/releases/download/v1.0.0/emsenn-cover-nerve-rank-die-1.0.0.tgz",
     "@emsenn/rmn-semantic-conformance-die": "https://github.com/emsenn/rmn-semantic-conformance-die/releases/download/v6.0.0/emsenn-rmn-semantic-conformance-die-6.0.0.tgz",

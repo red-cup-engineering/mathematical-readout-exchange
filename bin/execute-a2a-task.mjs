@@ -12,17 +12,25 @@ import {
 } from "@emsenn/cover-nerve-rank-die";
 import { attestMathematicalSources } from "../src/mathematical-source-attestation.mjs";
 
+function exactFraction(numerator, denominator) {
+  let num = BigInt(numerator), den = BigInt(denominator), left = num, right = den;
+  while (right !== 0n) [left, right] = [right, left % right];
+  num /= left; den /= left;
+  return Object.freeze({ numerator: num.toString(), denominator: den.toString() });
+}
+
 function measuredReadout(inputBytes) {
   const wallStart = process.hrtime.bigint();
   const cpuStart = process.cpuUsage();
   const dieResult = executeCoverNerveDie(inputBytes);
   const cpu = process.cpuUsage(cpuStart);
+  const wallNanoseconds = process.hrtime.bigint() - wallStart;
   return {
     dieResult,
     certificate: attestMathematicalSources(),
     resourceEffects: {
-      "fuel-consumed": (cpu.user + cpu.system) / 1e6,
-      "wall-time-seconds": Number(process.hrtime.bigint() - wallStart) / 1e9,
+      "fuel-consumed": exactFraction(cpu.user + cpu.system, 1_000_000),
+      "wall-time-seconds": exactFraction(wallNanoseconds, 1_000_000_000),
       denomination: "mathematical-readout-exchange-cpu-seconds",
       settled: false,
     },
