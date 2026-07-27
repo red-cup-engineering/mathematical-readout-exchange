@@ -1,6 +1,6 @@
 {
   "name": "Mathematical Readout Exchange",
-  "description": "Serves the CoverNerve rank readout of an entities/cells/components triple — H0 rank, H1 rank, coordination-free flag, Landauer bits, coordination cost — as a signed A2A 1.0 face over a pure computation, source-pinned against Obsmetrologia/Cohomology/CoordinationCohomology.lean and Obsmetrologia/Cohomology/LandauerEntropy.lean.",
+  "description": "Serves source-pinned CoverNerve ranks either from admitted Euler counts or by deriving components from an explicitly normalized finite simple graph, across one signed A2A 1.0 mathematical-readout face.",
   "supportedInterfaces": [
     {
       "url": "${BASE_URL}/a2a/jsonrpc",
@@ -19,7 +19,7 @@
     "url": "https://emsenn.net/",
     "organization": "Mathematical Readout Exchange via A2A Services Section"
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
   "capabilities": {
     "streaming": false,
     "pushNotifications": false,
@@ -46,6 +46,13 @@
                 "mode": "tensor"
               },
               {
+                "name": "relationalGraph",
+                "direction": "input",
+                "predicate": "ni:///sha-256;sTlolLAsS0M4Ti_jFjEf2qWdhZiFgxz8Vs7JQ6oEZHE",
+                "carrier": "ni:///sha-256;zE539IZJjlXOLy2nwMC0xoR_0iQBuzvIxyHVYc3UGGY",
+                "mode": "tensor"
+              },
+              {
                 "name": "readout",
                 "direction": "output",
                 "predicate": "ni:///sha-256;sTlolLAsS0M4Ti_jFjEf2qWdhZiFgxz8Vs7JQ6oEZHE",
@@ -59,7 +66,8 @@
               "factors": [
                 {
                   "inputs": [
-                    "coverNerve"
+                    "coverNerve",
+                    "relationalGraph"
                   ],
                   "outputs": [
                     "readout"
@@ -70,6 +78,10 @@
                         {
                           "positiveEvidence": false,
                           "negativeEvidence": false
+                        },
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
                         }
                       ],
                       "output": [
@@ -81,6 +93,154 @@
                     },
                     {
                       "input": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
+                        },
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
+                        },
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": true
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
+                        },
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        },
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        },
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        },
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": true
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        },
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": true
+                        },
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": true
+                        },
                         {
                           "positiveEvidence": true,
                           "negativeEvidence": false
@@ -98,6 +258,10 @@
                         {
                           "positiveEvidence": false,
                           "negativeEvidence": true
+                        },
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": true
                         }
                       ],
                       "output": [
@@ -109,6 +273,82 @@
                     },
                     {
                       "input": [
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": true
+                        },
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        },
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": false
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        },
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": false
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        },
+                        {
+                          "positiveEvidence": false,
+                          "negativeEvidence": true
+                        }
+                      ],
+                      "output": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        }
+                      ]
+                    },
+                    {
+                      "input": [
+                        {
+                          "positiveEvidence": true,
+                          "negativeEvidence": true
+                        },
                         {
                           "positiveEvidence": true,
                           "negativeEvidence": true
@@ -151,6 +391,27 @@
         "cohomology",
         "cover-nerve",
         "landauer"
+      ],
+      "examples": [],
+      "inputModes": [
+        "application/rmn+cbor"
+      ],
+      "outputModes": [
+        "application/rmn+cbor"
+      ],
+      "securityRequirements": []
+    },
+    {
+      "id": "read-normalized-relational-graph",
+      "name": "Derive relational graph component and rank readout",
+      "description": "Accepts exactly one typed RMN normalized-simple-graph request with at least one sorted unique string vertex and sorted unique canonical edges; derives a canonical component partition, CoverNerve H0/H1 ranks, coordination and Landauer readouts, exact and harmonic ranks, source qualification, and measured provider effects.",
+      "tags": [
+        "rmn",
+        "a2a",
+        "obsmetrologia",
+        "relational-graph",
+        "connected-components",
+        "cover-nerve"
       ],
       "examples": [],
       "inputModes": [

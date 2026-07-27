@@ -53,19 +53,59 @@ export function relationGraphOfCells(cells) {
   });
 }
 
+export function relationGraphOfNormalizedEdges(vertices, edges) {
+  if (!Array.isArray(vertices) || !Array.isArray(edges)) throw new TypeError("vertices and edges must be arrays");
+  if (vertices.length === 0) throw new TypeError("a normalized relational graph requires at least one vertex");
+  if (vertices.some((vertex) => typeof vertex !== "string" || vertex.length === 0)) {
+    throw new TypeError("vertices must be nonempty strings");
+  }
+  if (vertices.some((vertex, index) => index > 0 && vertices[index - 1] >= vertex)) {
+    throw new TypeError("vertices must be unique and sorted");
+  }
+  const vertexSet = new Set(vertices);
+  let previous = null;
+  for (const edge of edges) {
+    if (!Array.isArray(edge) || edge.length !== 2 || edge.some((vertex) => typeof vertex !== "string")) {
+      throw new TypeError("each edge must be a two-vertex string pair");
+    }
+    const [left, right] = edge;
+    if (!vertexSet.has(left) || !vertexSet.has(right)) throw new TypeError("edge contains an unknown vertex");
+    if (left >= right) throw new TypeError("edge endpoints must be distinct and sorted");
+    if (previous !== null && (
+      previous[0] > left
+      || (previous[0] === left && previous[1] >= right)
+    )) throw new TypeError("edges must be unique and sorted");
+    previous = edge;
+  }
+  return relationGraphOfCells([
+    ...vertices.map((vertex) => ({ subject: vertex, object: vertex })),
+    ...edges.map(([subject, object]) => ({ subject, object })),
+  ]);
+}
+
 export function laplacianOf(graph) {
   const weights = square(graph?.weights);
   return Object.freeze(weights.map((row, i) => Object.freeze(row.map((weight, j) =>
     i === j ? safe(row.reduce((sum, value) => safe(sum + value, "weighted degree"), 0), "weighted degree") : -weight))));
 }
 
-export function componentCount(graph) {
+export function componentIndices(graph) {
   const weights = square(graph?.weights), parent = weights.map((_row, i) => i);
   const find = (i) => parent[i] === i ? i : (parent[i] = find(parent[i]));
   for (let i = 0; i < weights.length; i += 1) for (let j = i + 1; j < weights.length; j += 1) {
     if (weights[i][j] > 0) { const a = find(i), b = find(j); if (a !== b) parent[a] = b; }
   }
-  return parent.reduce((count, _value, i) => count + (find(i) === i ? 1 : 0), 0);
+  const members = new Map();
+  for (let index = 0; index < parent.length; index += 1) {
+    const root = find(index);
+    if (!members.has(root)) members.set(root, []);
+    members.get(root).push(index);
+  }
+  return Object.freeze([...members.values()].map((component) => Object.freeze(component)));
+}
+
+export function componentCount(graph) {
+  return componentIndices(graph).length;
 }
 
 function determinant(source) {
@@ -97,9 +137,9 @@ export function safeCount(value, where = "count") {
   return Number(value);
 }
 
-export function hodgeDecomposition(graph) {
+export function hodgeDecomposition(graph, components = componentCount(graph)) {
   const weights = square(graph?.weights);
-  const vertices = weights.length, components = componentCount(graph);
+  const vertices = weights.length;
   let edges = 0;
   for (let i = 0; i < vertices; i += 1) for (let j = i + 1; j < vertices; j += 1) edges = safe(edges + weights[i][j], "edge count");
   const exact = vertices - components;

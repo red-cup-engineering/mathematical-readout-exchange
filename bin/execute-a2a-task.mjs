@@ -11,6 +11,11 @@ import {
   executeCoverNerveDie,
 } from "@emsenn/cover-nerve-rank-die";
 import { attestMathematicalSources } from "../src/mathematical-source-attestation.mjs";
+import {
+  executeRelationalGraphReadout,
+  mathematicalReadoutRequestKind,
+  RELATIONAL_GRAPH_READOUT,
+} from "../src/relational-graph-protocol.mjs";
 
 function exactFraction(numerator, denominator) {
   let num = BigInt(numerator), den = BigInt(denominator), left = num, right = den;
@@ -22,11 +27,26 @@ function exactFraction(numerator, denominator) {
 function measuredReadout(inputBytes) {
   const wallStart = process.hrtime.bigint();
   const cpuStart = process.cpuUsage();
-  const dieResult = executeCoverNerveDie(inputBytes);
+  const requestKind = mathematicalReadoutRequestKind(inputBytes);
+  let dieResult;
+  let filename;
+  if (requestKind === "CoverNerveRankRequest.v1") {
+    decodeCoverNerveRequest(inputBytes);
+    dieResult = executeCoverNerveDie(inputBytes);
+    filename = "cover-nerve-result.rmn.cbor";
+  } else if (requestKind === RELATIONAL_GRAPH_READOUT.input) {
+    dieResult = executeRelationalGraphReadout(inputBytes);
+    filename = "relational-graph-result.rmn.cbor";
+  } else {
+    const error = new Error(`mathematical-readout-exchange does not serve request kind ${requestKind ?? "[absent]"}`);
+    error.code = "unsupported-readout-kind";
+    throw error;
+  }
   const cpu = process.cpuUsage(cpuStart);
   const wallNanoseconds = process.hrtime.bigint() - wallStart;
   return {
     dieResult,
+    filename,
     certificate: attestMathematicalSources(),
     resourceEffects: {
       "fuel-consumed": exactFraction(cpu.user + cpu.system, 1_000_000),
@@ -41,14 +61,13 @@ export async function executeA2aMessage(source) {
   const message = Message.fromJSON(source);
   if (message.role !== Role.ROLE_USER) throw new Error("mathematical-readout-exchange requires an A2A ROLE_USER message");
   const input = extractRmnPart(message.parts);
-  decodeCoverNerveRequest(input.bytes);
   const result = measuredReadout(input.bytes);
   return Message.toJSON({
     messageId: randomUUID(),
     contextId: message.contextId,
     taskId: message.taskId,
     role: Role.ROLE_AGENT,
-    parts: [rmnPart(result.dieResult.bytes, "cover-nerve-result.rmn.cbor")],
+    parts: [rmnPart(result.dieResult.bytes, result.filename)],
     metadata: {
       disposition: "completion",
       requestNi: input.ni,

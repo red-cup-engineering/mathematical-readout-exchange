@@ -5,15 +5,17 @@
   "status": "available-local-and-a2a-network-boundaries",
   "operations": [
     "obsmetrologia.coverNerve.rank over the signed A2A face",
+    "obsmetrologia.relationalGraph.readout over the signed A2A face",
     "signed agent-card discovery",
     "solicit-service over ActivityStreams",
     "invoke-service over ActivityStreams"
   ],
-  "accepts": "non-negative integer entity, cell, and component counts satisfying the CoverNerve bounds",
+  "accepts": "either non-negative integer entity, cell, and component counts satisfying the CoverNerve bounds, or an explicitly normalized nonempty finite simple graph with sorted unique string vertices and sorted unique canonical edges",
   "returns": "H0 and H1 ranks, coordination and Landauer readouts, source attestation, evidence qualification, locally measured resource use, and—on the ActivityStreams face—a provider-local receipt, book entry, and causal record. The solicited offer's terms carry an explicit resource-price declaration naming which of the six canonical resource dimensions (asset, compute, erasure, gas, time, wit) are charged and how each is measured; compute (cpu-microseconds via process.cpuUsage, peak-rss bytes via process.resourceUsage) and time (milliseconds via process.hrtime) are priced by measurement method only, asset/gas/wit are not priced, and erasure is priced exactly as the request's own computed Obsmetrologia.Landauer.landauerBits — the die's mathematics IS the erasure price, recomputable by any party from the accepted request. The completion readout reports the actual measured vector for that execution alongside the quoted terms, so quoted-vs-actual is auditable. No cash price or x402 settlement is created.",
   "refusal": [
     "malformed A2A request",
     "malformed or mathematically inadmissible CoverNerve counts",
+    "non-normalized graph vertices or edges, loops, duplicate edges, or unknown endpoints",
     "admitted Obsmetrologia source digest drift",
     "request for a formal extraction or proof of implementation equivalence",
     "request for cross-settlement mutation or unsettled pricing authority"

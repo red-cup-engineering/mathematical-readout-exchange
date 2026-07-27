@@ -1,6 +1,6 @@
 {
   "name": "@emsenn/mathematical-readout-exchange",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Union-facing OSS boundary for qualified executable projections grounded in Obsmetrologia mathematics.",
@@ -51,6 +51,11 @@
         "accepts": "{ entities: number, cells: number, components: number } — non-negative safe integers satisfying the CoverNerve bounds",
         "returns": "{ h0rank, h1rank, coordinationFree, landauerBits, coordinationCost, cost, certificate }"
       },
+      "obsmetrologia.relationalGraph.readout": {
+        "transport": "a2a-1.0-rmn-cbor",
+        "accepts": "{ vertices: string[], edges: [string,string][] } — at least one explicitly sorted unique vertex and canonical sorted unique simple edges",
+        "returns": "{ entities, cells, components, componentPartition, h0rank, h1rank, coordinationFree, landauerBits, coordinationCost, exactRank, harmonicRank, cost, certificate }"
+      },
       "solicit-service": {
         "contract": "ni:///sha-256;3TCTDawHwIXDnxWPQYzDZc6YhhERQkmO_n9wi06sxlQ",
         "accepts": "ActivityStreams Offer<ServiceSolicitation>",
@@ -73,7 +78,7 @@
     "start": "node bin/serve-a2a.mjs",
     "serve:a2a": "node bin/serve-a2a.mjs",
     "test": "node --test test/*.test.mjs",
-    "verify": "node src/verify-enterprise.mjs && node --check src/law.mjs && node --check bin/serve-a2a.mjs && node --check bin/execute-a2a-task.mjs && node --check src/contract-cover-nerve-readout.mjs && node --check src/relational-graph.mjs && node --test test/*.test.mjs && lake env lean scripts/Conformance.lean"
+    "verify": "node src/verify-enterprise.mjs && node --check src/law.mjs && node --check bin/serve-a2a.mjs && node --check bin/execute-a2a-task.mjs && node --check src/contract-cover-nerve-readout.mjs && node --check src/relational-graph.mjs && node --check src/relational-graph-protocol.mjs && node --test test/*.test.mjs && lake env lean scripts/Conformance.lean"
   },
   "dependencies": {
     "@a2a-js/sdk": "1.0.0-beta.0",

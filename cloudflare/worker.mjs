@@ -10,6 +10,11 @@ import {
   decodeCoverNerveRequest,
   executeCoverNerveDie,
 } from "@emsenn/cover-nerve-rank-die";
+import {
+  executeRelationalGraphReadout,
+  mathematicalReadoutRequestKind,
+  RELATIONAL_GRAPH_READOUT,
+} from "../src/relational-graph-protocol.mjs";
 
 const SOURCE_CERTIFICATE = Object.freeze({
   kind: "release-source-pin",
@@ -61,7 +66,7 @@ async function signedAgentCard(request, env) {
   const origin = new URL(request.url).origin;
   const card = structuredClone(agentCardTemplate);
   card.version = "2.0.0";
-  card.description = "Cloud-mounted A2A 1.0 face for the typed CoverNerve rank logic die; pre-release until independent assay and market induction.";
+  card.description = "Cloud-mounted A2A 1.0 face for typed CoverNerve count and normalized relational-graph readouts; pre-release until independent assay and market induction.";
   card.supportedInterfaces = [
     { url: `${origin}/a2a/jsonrpc`, protocolBinding: "JSONRPC", tenant: "", protocolVersion: "1.0" },
     { url: `${origin}/a2a/rest`, protocolBinding: "HTTP+JSON", tenant: "", protocolVersion: "1.0" },
@@ -105,9 +110,20 @@ function executeMessage(source) {
   if (message.role !== Role.ROLE_USER) throw new Error("CoverNerve node requires an A2A ROLE_USER message");
   const input = rmnPart(Message.toJSON(message));
   const inputBytes = bytesFromBase64(input.raw);
-  decodeCoverNerveRequest(inputBytes);
+  const requestKind = mathematicalReadoutRequestKind(inputBytes);
   const started = performance.now();
-  const result = executeCoverNerveDie(inputBytes);
+  let result;
+  let filename;
+  if (requestKind === "CoverNerveRankRequest.v1") {
+    decodeCoverNerveRequest(inputBytes);
+    result = executeCoverNerveDie(inputBytes);
+    filename = "cover-nerve-result.rmn.cbor";
+  } else if (requestKind === RELATIONAL_GRAPH_READOUT.input) {
+    result = executeRelationalGraphReadout(inputBytes);
+    filename = "relational-graph-result.rmn.cbor";
+  } else {
+    throw new Error(`unsupported mathematical-readout kind ${requestKind ?? "[absent]"}`);
+  }
   const elapsed = Math.max(0, performance.now() - started);
   return {
     messageId: crypto.randomUUID(),
@@ -117,7 +133,7 @@ function executeMessage(source) {
     parts: [{
       raw: Buffer.from(result.bytes).toString("base64"),
       metadata: { ni: result.id },
-      filename: "cover-nerve-result.rmn.cbor",
+      filename,
       mediaType: "application/rmn+cbor",
     }],
     metadata: {

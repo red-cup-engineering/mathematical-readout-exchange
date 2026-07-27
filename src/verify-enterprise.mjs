@@ -19,6 +19,7 @@ const required = [
   "content/agent-card-signing/jwks.json",
   "data/agent-card-signing/ed25519-private.pem",
   "src/contract-cover-nerve-readout.mjs",
+  "src/relational-graph-protocol.mjs",
   "bin/execute-a2a-task.mjs",
   "bin/serve-a2a.mjs",
   "scripts/Conformance.lean",
@@ -36,6 +37,9 @@ if (!enterprise?.["unimplemented-operations"]?.includes("formally-verified-Lean-
 }
 if (!enterprise?.["implemented-operations"]?.includes("serve-activitystreams-contract-over-stdio")) {
   failures.push("ActivityStreams contract operation is not advertised");
+}
+if (enterprise?.["operation-catalog"]?.["obsmetrologia.relationalGraph.readout"]?.transport !== "a2a-1.0-rmn-cbor") {
+  failures.push("normalized relational-graph A2A operation is not advertised");
 }
 if (COVER_NERVE_DIE.input !== "CoverNerveRankRequest.v1" || COVER_NERVE_DIE.output !== "CoverNerveRankResult.v1") {
   failures.push("released CoverNerve die pinout is absent or wrong");
