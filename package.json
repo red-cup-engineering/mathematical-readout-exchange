@@ -1,5 +1,5 @@
 {
-  "name": "@emsenn/mathematical-readout-exchange",
+  "name": "@lenticule-science/mathematical-readout-exchange",
   "version": "0.2.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,8 @@
     "./relational-graph": {
       "types": "./types/relational-graph.d.mts",
       "import": "./src/relational-graph.mjs"
-    }
+    },
+    "./src/client.mjs": "./src/client.mjs"
   },
   "keywords": [
     "a2a",
@@ -82,15 +83,39 @@
   },
   "dependencies": {
     "@a2a-js/sdk": "1.0.0-beta.0",
-    "@emsenn/a2a-agent-card-key-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-agent-card-key-service",
-    "@emsenn/a2a-contracted-agent-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-contracted-agent-service",
-    "@emsenn/a2a-rmn-part-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-rmn-part-service",
-    "@emsenn/a2a-rmn-task-client-service": "file:../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-rmn-task-client-service",
-    "@emsenn/rmn-semantic-conformance": "file:../../../../../red-cup-engineering/services/model-services-section/services/relational-model-services-section/services/relational-model-notation-services-section/services/rmn-conformance-service",
-    "@emsenn/http-server": "file:../../../../../red-cup-engineering/services/web-services-section/services/http-server",
-    "@emsenn/cover-nerve-rank-die": "https://github.com/emsenn/cover-nerve-rank-die/releases/download/v1.0.0/emsenn-cover-nerve-rank-die-1.0.0.tgz",
-    "@emsenn/rmn-semantic-conformance-die": "https://github.com/emsenn/rmn-semantic-conformance-die/releases/download/v6.0.0/emsenn-rmn-semantic-conformance-die-6.0.0.tgz",
-    "@emsenn/rwil-rdf-services": "file:../rwil-rdf-services"
+    "@red-cup-engineering/a2a-agent-card-key-service": "1.0.0",
+    "@red-cup-engineering/a2a-contracted-agent-service": "2.0.0",
+    "@red-cup-engineering/a2a-rmn-part-service": "1.0.0",
+    "@red-cup-engineering/a2a-rmn-task-client-service": "1.1.0",
+    "@red-cup-engineering/rmn-semantic-conformance": "6.0.0",
+    "@red-cup-engineering/http-server": "0.0.0",
+    "@lenticule-science/cover-nerve-rank-die": "1.0.0",
+    "@lenticule-science/rmn-semantic-conformance-die": "6.0.0",
+    "@lenticule-science/rwil-rdf-projection-service": "1.0.0"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "x-semiotic-voxel": {
+    "profile": "org.harmonious-union.semiotic-voxel.v1",
+    "owner": "lenticule-science",
+    "kind": "actor",
+    "actor": "urn:ame:mathematical-readout-exchange",
+    "operations": [
+      "invoke-service",
+      "obsmetrologia.coverNerve.rank",
+      "obsmetrologia.relationalGraph.readout",
+      "solicit-service"
+    ],
+    "capabilities": [
+      {
+        "capability": "mathematical-readout-exchange",
+        "faces": [
+          "invoke-service",
+          "obsmetrologia.coverNerve.rank",
+          "obsmetrologia.relationalGraph.readout",
+          "solicit-service"
+        ]
+      }
+    ],
+    "package": "@lenticule-science/mathematical-readout-exchange"
+  }
 }

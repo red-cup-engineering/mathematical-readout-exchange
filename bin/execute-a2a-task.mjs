@@ -5,11 +5,11 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Message, Role } from "@a2a-js/sdk";
-import { extractRmnPart, rmnPart } from "@emsenn/a2a-rmn-part-service";
+import { extractRmnPart, rmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
 import {
   decodeCoverNerveRequest,
   executeCoverNerveDie,
-} from "@emsenn/cover-nerve-rank-die";
+} from "@lenticule-science/cover-nerve-rank-die";
 import { attestMathematicalSources } from "../src/mathematical-source-attestation.mjs";
 import {
   executeRelationalGraphReadout,

@@ -1,13 +1,13 @@
 import {
   decodeRelationalValue,
   encodeRelationalValue,
-} from "@emsenn/rmn-semantic-conformance-die/relational-value";
+} from "@lenticule-science/rmn-semantic-conformance-die/relational-value";
 import {
   decodeSemantic,
   semanticBytes,
   semanticId,
-} from "@emsenn/rmn-semantic-conformance-die";
-import { computeCoverNerve } from "@emsenn/cover-nerve-rank-die/function";
+} from "@lenticule-science/rmn-semantic-conformance-die";
+import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-die/function";
 import {
   componentIndices,
   hodgeDecomposition,

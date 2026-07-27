@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { userRmnMessage } from "@emsenn/a2a-rmn-part-service";
-import { semanticBytes } from "@emsenn/rmn-semantic-conformance-die";
-import { computeCoverNerve } from "@emsenn/cover-nerve-rank-die/function";
+import { userRmnMessage } from "@red-cup-engineering/a2a-rmn-part-service";
+import { semanticBytes } from "@lenticule-science/rmn-semantic-conformance-die";
+import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-die/function";
 import {
   decodeCoverNerveResult,
   encodeCoverNerveRequest,
   executeCoverNerveDie,
-} from "@emsenn/cover-nerve-rank-die";
+} from "@lenticule-science/cover-nerve-rank-die";
 import { attestMathematicalSources } from "../src/mathematical-source-attestation.mjs";
 import { executeA2aMessage } from "../bin/execute-a2a-task.mjs";
 
@@ -66,7 +66,7 @@ test("A2A executor: coverNerve happy path round-trip", async () => {
   const result = decodeCoverNerveResult(Buffer.from(part.raw, "base64")).value;
   assert.equal(result.h1rank, 1);
   assert.equal(response.metadata.resourceEffects.denomination, "mathematical-readout-exchange-cpu-seconds");
-  assert.equal(response.metadata.mathematicalSourceCertificate.library, "@emsenn/obsmetrologia");
+  assert.equal(response.metadata.mathematicalSourceCertificate.library, "@lenticule-science/obsmetrologia");
   assert.match(response.metadata.requestNi, /^ni:\/\/\/sha-256;/);
   assert.match(response.metadata.responseNi, /^ni:\/\/\/sha-256;/);
 });

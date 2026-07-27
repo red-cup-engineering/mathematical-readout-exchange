@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { resolve } from "node:path";
-import { serveContractedAgent } from "@emsenn/a2a-contracted-agent-service";
+import { serveContractedAgent } from "@red-cup-engineering/a2a-contracted-agent-service";
 
 const ROOT = resolve(import.meta.dirname, "..");
 

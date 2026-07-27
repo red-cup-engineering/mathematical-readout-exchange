@@ -9,7 +9,7 @@ import jwks from "../content/agent-card-signing/jwks.json";
 import {
   decodeCoverNerveRequest,
   executeCoverNerveDie,
-} from "@emsenn/cover-nerve-rank-die";
+} from "@lenticule-science/cover-nerve-rank-die";
 import {
   executeRelationalGraphReadout,
   mathematicalReadoutRequestKind,
@@ -18,7 +18,7 @@ import {
 
 const SOURCE_CERTIFICATE = Object.freeze({
   kind: "release-source-pin",
-  library: "@emsenn/obsmetrologia",
+  library: "@lenticule-science/obsmetrologia",
   sources: [
     {
       file: "Obsmetrologia/Cohomology/CoordinationCohomology.lean",

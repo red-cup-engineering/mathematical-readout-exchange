@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { userRmnMessage, extractRmnPart } from "@emsenn/a2a-rmn-part-service";
-import { a2aResultMetadata, a2aResultParts, sendRmnTask } from "../../../../../../red-cup-engineering/services/web-services-section/services/a2a-services-section/services/a2a-rmn-task-client-service/src/send-rmn-task.mjs";
-import { SOVEREIGN_CIRCUIT_INTERFACE_EXTENSION } from "../../../../../../red-cup-engineering/services/model-services-section/services/relational-model-services-section/services/relational-model-notation-services-section/services/rmn-conformance-service/src/hierarchical-circuit.mjs";
-import { decodeCoverNerveResult, encodeCoverNerveRequest } from "@emsenn/cover-nerve-rank-die";
+import { userRmnMessage, extractRmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
+import { a2aResultMetadata, a2aResultParts, sendRmnTask } from "@red-cup-engineering/a2a-rmn-task-client-service/src/send-rmn-task.mjs";
+import { SOVEREIGN_CIRCUIT_INTERFACE_EXTENSION } from "@red-cup-engineering/rmn-semantic-conformance/src/hierarchical-circuit.mjs";
+import { decodeCoverNerveResult, encodeCoverNerveRequest } from "@lenticule-science/cover-nerve-rank-die";
 import {
   decodeRelationalGraphResult,
   encodeRelationalGraphRequest,

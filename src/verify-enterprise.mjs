@@ -3,7 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { COVER_NERVE_DIE } from "@emsenn/cover-nerve-rank-die";
+import { COVER_NERVE_DIE } from "@lenticule-science/cover-nerve-rank-die";
 import { attestMathematicalSources } from "./mathematical-source-attestation.mjs";
 import { COVER_NERVE_READOUT_CONTRACT } from "./law.mjs";
 

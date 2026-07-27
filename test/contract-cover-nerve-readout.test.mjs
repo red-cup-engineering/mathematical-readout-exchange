@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test, { after, before } from "node:test";
 
-import { startRwilProviderProcess } from "@emsenn/rwil-rdf-services/test-provider";
+import { startRwilProviderProcess } from "@lenticule-science/rwil-rdf-projection-service/test-provider";
 
 import { run, semanticDigest } from "../src/contract-cover-nerve-readout.mjs";
 import { COVER_NERVE_READOUT_CONTRACT } from "../src/law.mjs";

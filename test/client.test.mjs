@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { Message, Role } from "@a2a-js/sdk";
-import { extractRmnPart, rmnPart } from "@emsenn/a2a-rmn-part-service";
-import { executeCoverNerveDie } from "@emsenn/cover-nerve-rank-die";
-import { circuitInterfaceFromAgentCard } from "@emsenn/rmn-semantic-conformance-die/hierarchical-circuit";
+import { extractRmnPart, rmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
+import { executeCoverNerveDie } from "@lenticule-science/cover-nerve-rank-die";
+import { circuitInterfaceFromAgentCard } from "@lenticule-science/rmn-semantic-conformance-die/hierarchical-circuit";
 import { requestCoverNerveReadout, requestRelationalGraphReadout } from "../src/client.mjs";
 import { executeRelationalGraphReadout } from "../src/relational-graph-protocol.mjs";
 

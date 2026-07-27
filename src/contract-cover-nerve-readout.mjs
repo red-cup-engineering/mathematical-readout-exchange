@@ -4,12 +4,12 @@ import { readFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { semanticId } from "@emsenn/rmn-semantic-conformance-die";
-import { encodeRelationalValue } from "@emsenn/rmn-semantic-conformance-die/relational-value";
-import { createSettlementStore } from "@emsenn/rwil-rdf-services/client";
+import { semanticId } from "@lenticule-science/rmn-semantic-conformance-die";
+import { encodeRelationalValue } from "@lenticule-science/rmn-semantic-conformance-die/relational-value";
+import { createSettlementStore } from "@lenticule-science/rwil-rdf-projection-service/client";
 
 import { COVER_NERVE_READOUT_CONTRACT } from "./law.mjs";
-import { computeCoverNerve } from "@emsenn/cover-nerve-rank-die/function";
+import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-die/function";
 import { attestMathematicalSources } from "./mathematical-source-attestation.mjs";
 
 const CONTEXT = "https://www.w3.org/ns/activitystreams";
@@ -166,7 +166,7 @@ async function invoke(store, activity, at) {
 
 export async function run(activity, op = "invoke-service", at = new Date().toISOString(), options = {}) {
   const dataRoot = resolve(options.dataRoot ?? process.env.MATHEMATICAL_READOUT_EXCHANGE_DATA_ROOT ?? join(NODE_ROOT, "data"));
-  const store = createSettlementStore({ settlementRoot: NODE_ROOT, dataRoot, agentUrl: options.agentUrl ?? process.env.RWIL_RDF_AGENT });
+  const store = createSettlementStore({ settlementRoot: NODE_ROOT, agentUrl: options.agentUrl ?? process.env.RWIL_RDF_AGENT });
   if (op === "solicit-service") return solicit(store, activity, at);
   if (op === "invoke-service") return invoke(store, activity, at);
   return reject(store, activity, `unknown-provider-operation:${op}`, at);

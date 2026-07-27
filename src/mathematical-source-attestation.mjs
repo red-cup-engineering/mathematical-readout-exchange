@@ -46,7 +46,7 @@ export function attestMathematicalSources() {
     throw error;
   }
   return {
-    library: "@emsenn/obsmetrologia",
+    library: "@lenticule-science/obsmetrologia",
     sources: observed,
     declarations: DECLARATIONS,
     assurance: {
