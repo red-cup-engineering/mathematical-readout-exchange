@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { Message, Role } from "@a2a-js/sdk";
 import { extractRmnPart, rmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
-import { executeCoverNerveDie } from "@lenticule-science/cover-nerve-rank-die";
+import { executeCoverNerveDie } from "@lenticule-science/cover-nerve-rank-readout-service";
 import { circuitInterfaceFromAgentCard } from "@lenticule-science/rmn-semantic-conformance-die/hierarchical-circuit";
 import { requestCoverNerveReadout, requestRelationalGraphReadout } from "../src/client.mjs";
 import { executeRelationalGraphReadout } from "../src/relational-graph-protocol.mjs";

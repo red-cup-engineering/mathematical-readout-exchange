@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { userRmnMessage, extractRmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
 import { a2aResultMetadata, a2aResultParts, sendRmnTask } from "@red-cup-engineering/a2a-rmn-task-client-service/src/send-rmn-task.mjs";
 import { SOVEREIGN_CIRCUIT_INTERFACE_EXTENSION } from "@red-cup-engineering/rmn-semantic-conformance/src/hierarchical-circuit.mjs";
-import { decodeCoverNerveResult, encodeCoverNerveRequest } from "@lenticule-science/cover-nerve-rank-die";
+import { decodeCoverNerveResult, encodeCoverNerveRequest } from "@lenticule-science/cover-nerve-rank-readout-service";
 import {
   decodeRelationalGraphResult,
   encodeRelationalGraphRequest,

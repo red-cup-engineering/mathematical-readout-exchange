@@ -9,7 +9,7 @@ import jwks from "../content/agent-card-signing/jwks.json";
 import {
   decodeCoverNerveRequest,
   executeCoverNerveDie,
-} from "@lenticule-science/cover-nerve-rank-die";
+} from "@lenticule-science/cover-nerve-rank-readout-service";
 import {
   executeRelationalGraphReadout,
   mathematicalReadoutRequestKind,

@@ -9,7 +9,7 @@ import { encodeRelationalValue } from "@lenticule-science/rmn-semantic-conforman
 import { createSettlementStore } from "@lenticule-science/rwil-rdf-projection-service/client";
 
 import { COVER_NERVE_READOUT_CONTRACT } from "./law.mjs";
-import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-die/function";
+import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-readout-service/function";
 import { attestMathematicalSources } from "./mathematical-source-attestation.mjs";
 
 const CONTEXT = "https://www.w3.org/ns/activitystreams";

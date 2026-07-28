@@ -7,7 +7,7 @@ import {
   semanticBytes,
   semanticId,
 } from "@lenticule-science/rmn-semantic-conformance-die";
-import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-die/function";
+import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-readout-service/function";
 import {
   componentIndices,
   hodgeDecomposition,

@@ -3,12 +3,12 @@ import { test } from "node:test";
 
 import { userRmnMessage } from "@red-cup-engineering/a2a-rmn-part-service";
 import { semanticBytes } from "@lenticule-science/rmn-semantic-conformance-die";
-import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-die/function";
+import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-readout-service/function";
 import {
   decodeCoverNerveResult,
   encodeCoverNerveRequest,
   executeCoverNerveDie,
-} from "@lenticule-science/cover-nerve-rank-die";
+} from "@lenticule-science/cover-nerve-rank-readout-service";
 import { attestMathematicalSources } from "../src/mathematical-source-attestation.mjs";
 import { executeA2aMessage } from "../bin/execute-a2a-task.mjs";
 

@@ -98,7 +98,7 @@
     "@red-cup-engineering/a2a-rmn-task-client-service": "1.1.0",
     "@red-cup-engineering/rmn-semantic-conformance": "6.0.0",
     "@red-cup-engineering/http-server": "0.0.0",
-    "@lenticule-science/cover-nerve-rank-die": "1.0.0",
+    "@lenticule-science/cover-nerve-rank-readout-service": "1.0.0",
     "@lenticule-science/rmn-semantic-conformance-die": "6.0.0",
     "@lenticule-science/rwil-rdf-projection-service": "1.0.2"
   },

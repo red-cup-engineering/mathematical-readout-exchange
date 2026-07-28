@@ -9,7 +9,7 @@ import { extractRmnPart, rmnPart } from "@red-cup-engineering/a2a-rmn-part-servi
 import {
   decodeCoverNerveRequest,
   executeCoverNerveDie,
-} from "@lenticule-science/cover-nerve-rank-die";
+} from "@lenticule-science/cover-nerve-rank-readout-service";
 import { attestMathematicalSources } from "../src/mathematical-source-attestation.mjs";
 import {
   executeRelationalGraphReadout,
