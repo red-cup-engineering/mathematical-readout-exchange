@@ -25,7 +25,7 @@ function ascribedValue(value) {
   return { bytes: semanticBytes(term), id: semanticId(term), term };
 }
 
-function decodeAscribedValue(bytes) {
+export function decodeAscribedValue(bytes) {
   const source = Buffer.from(bytes);
   const term = decodeSemantic(source);
   if (!semanticBytes(term).equals(source)) {

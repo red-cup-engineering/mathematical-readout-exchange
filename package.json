@@ -1,12 +1,14 @@
 {
   "name": "@lenticule-science/mathematical-readout-exchange",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "description": "Union-facing OSS boundary for qualified executable projections grounded in Obsmetrologia mathematics.",
   "main": "src/contract-cover-nerve-readout.mjs",
   "exports": {
     "./client": "./src/client.mjs",
+    "./siloxane-zeolite-rigidity": "./src/siloxane-zeolite-rigidity.mjs",
+    "./siloxane-zeolite-rigidity-protocol": "./src/siloxane-zeolite-rigidity-protocol.mjs",
     "./relational-graph": {
       "types": "./types/relational-graph.d.mts",
       "import": "./src/relational-graph.mjs"
@@ -33,6 +35,7 @@
       "attest-mathematical-source-bytes",
       "project-cover-nerve-ranks",
       "project-finite-relational-graph-metrology",
+      "assay-siloxane-zeolite-rigidity-surrogate2d",
       "serve-signed-a2a",
       "serve-activitystreams-contract-over-stdio",
       "issue-provider-local-rwil-receipt-and-causal-evidence",
@@ -57,6 +60,11 @@
         "accepts": "{ vertices: string[], edges: [string,string][] } — at least one explicitly sorted unique vertex and canonical sorted unique simple edges",
         "returns": "{ entities, cells, components, componentPartition, h0rank, h1rank, coordinationFree, landauerBits, coordinationCost, exactRank, harmonicRank, cost, certificate }"
       },
+      "obsmetrologia.siloxaneZeolite.rigiditySurrogate2d": {
+        "transport": "json-stdio",
+        "accepts": "{ conductivityGrid: number[][], sigmaMatrix: number > 0, thresholds: number[] in [0,1] }",
+        "returns": "{ model: 'surrogate2d', phiGrid, sweep, limitations } — planar 4-neighbor generic 2-D rigidity assay only"
+      },
       "solicit-service": {
         "contract": "ni:///sha-256;3TCTDawHwIXDnxWPQYzDZc6YhhERQkmO_n9wi06sxlQ",
         "accepts": "ActivityStreams Offer<ServiceSolicitation>",
@@ -73,7 +81,8 @@
     "serve-mathematical-readout-exchange-a2a": "./bin/serve-a2a.mjs",
     "execute-mathematical-readout-exchange-a2a-task": "./bin/execute-a2a-task.mjs",
     "solicit-service": "./src/contract-cover-nerve-readout.mjs",
-    "invoke-service": "./src/contract-cover-nerve-readout.mjs"
+    "invoke-service": "./src/contract-cover-nerve-readout.mjs",
+    "run-siloxane-zeolite-rigidity": "./bin/run-siloxane-zeolite-rigidity.mjs"
   },
   "scripts": {
     "start": "node bin/serve-a2a.mjs",
@@ -84,14 +93,18 @@
   "dependencies": {
     "@a2a-js/sdk": "1.0.0-beta.0",
     "@red-cup-engineering/a2a-agent-card-key-service": "1.0.0",
-    "@red-cup-engineering/a2a-contracted-agent-service": "2.0.0",
+    "@red-cup-engineering/a2a-contracted-agent-service": "2.0.4",
     "@red-cup-engineering/a2a-rmn-part-service": "1.0.0",
     "@red-cup-engineering/a2a-rmn-task-client-service": "1.1.0",
     "@red-cup-engineering/rmn-semantic-conformance": "6.0.0",
     "@red-cup-engineering/http-server": "0.0.0",
     "@lenticule-science/cover-nerve-rank-die": "1.0.0",
     "@lenticule-science/rmn-semantic-conformance-die": "6.0.0",
-    "@lenticule-science/rwil-rdf-projection-service": "1.0.0"
+    "@lenticule-science/rwil-rdf-projection-service": "1.0.2"
+  },
+  "overrides": {
+    "@red-cup-engineering/a2a-contracted-agent-service": "2.0.4",
+    "@red-cup-engineering/a2a-task-state-custody-service": "1.0.5"
   },
   "license": "UNLICENSED",
   "x-semiotic-voxel": {
@@ -103,6 +116,7 @@
       "invoke-service",
       "obsmetrologia.coverNerve.rank",
       "obsmetrologia.relationalGraph.readout",
+      "obsmetrologia.siloxaneZeolite.rigiditySurrogate2d",
       "solicit-service"
     ],
     "capabilities": [
@@ -112,6 +126,7 @@
           "invoke-service",
           "obsmetrologia.coverNerve.rank",
           "obsmetrologia.relationalGraph.readout",
+          "obsmetrologia.siloxaneZeolite.rigiditySurrogate2d",
           "solicit-service"
         ]
       }

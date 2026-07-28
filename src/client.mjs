@@ -7,6 +7,10 @@ import {
   decodeRelationalGraphResult,
   encodeRelationalGraphRequest,
 } from "./relational-graph-protocol.mjs";
+import {
+  decodeSiloxaneZeoliteRigidityResult,
+  encodeSiloxaneZeoliteRigidityRequest,
+} from "./siloxane-zeolite-rigidity-protocol.mjs";
 
 function requireAgentUrl(agentUrl) {
   if (typeof agentUrl !== "string" || !/^https?:\/\//u.test(agentUrl)) throw new Error("one absolute mathematical-readout Agent Card URL is required");
@@ -51,6 +55,18 @@ export async function requestRelationalGraphReadout({ agentUrl, graph, signal, s
     request,
     filename: "relational-graph-request.rmn.cbor",
     decode: decodeRelationalGraphResult,
+    signal,
+    send,
+  });
+}
+
+export async function requestSiloxaneZeoliteRigidityReadout({ agentUrl, simulation, signal, send = sendRmnTask }) {
+  const request = encodeSiloxaneZeoliteRigidityRequest(simulation);
+  return requestReadout({
+    agentUrl,
+    request,
+    filename: "siloxane-zeolite-rigidity-surrogate2d-request.rmn.cbor",
+    decode: decodeSiloxaneZeoliteRigidityResult,
     signal,
     send,
   });

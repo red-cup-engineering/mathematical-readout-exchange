@@ -421,6 +421,28 @@
         "application/rmn+cbor"
       ],
       "securityRequirements": []
+    },
+    {
+      "id": "simulate-siloxane-zeolite-rigidity-surrogate2d",
+      "name": "Simulate planar siloxane-zeolite rigidity",
+      "description": "Accepts one typed RMN conductivity-grid request, maps conductivity to ossification phi, sweeps thresholds, and returns exact planar generic-rigidity and graphic-rank readouts with conservative pulse candidates. This is explicitly a 2-D surrogate, not MD, DFT, or a 3-D solver.",
+      "tags": [
+        "rmn",
+        "a2a",
+        "obsmetrologia",
+        "siloxane",
+        "zeolite",
+        "rigidity",
+        "surrogate2d"
+      ],
+      "examples": [],
+      "inputModes": [
+        "application/rmn+cbor"
+      ],
+      "outputModes": [
+        "application/rmn+cbor"
+      ],
+      "securityRequirements": []
     }
   ],
   "signatures": []

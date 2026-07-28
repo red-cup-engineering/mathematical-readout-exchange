@@ -16,6 +16,10 @@ import {
   mathematicalReadoutRequestKind,
   RELATIONAL_GRAPH_READOUT,
 } from "../src/relational-graph-protocol.mjs";
+import {
+  executeSiloxaneZeoliteRigidityReadout,
+  SILOXANE_ZEOLITE_RIGIDITY,
+} from "../src/siloxane-zeolite-rigidity-protocol.mjs";
 
 function exactFraction(numerator, denominator) {
   let num = BigInt(numerator), den = BigInt(denominator), left = num, right = den;
@@ -37,6 +41,9 @@ function measuredReadout(inputBytes) {
   } else if (requestKind === RELATIONAL_GRAPH_READOUT.input) {
     dieResult = executeRelationalGraphReadout(inputBytes);
     filename = "relational-graph-result.rmn.cbor";
+  } else if (requestKind === SILOXANE_ZEOLITE_RIGIDITY.input) {
+    dieResult = executeSiloxaneZeoliteRigidityReadout(inputBytes);
+    filename = "siloxane-zeolite-rigidity-surrogate2d-result.rmn.cbor";
   } else {
     const error = new Error(`mathematical-readout-exchange does not serve request kind ${requestKind ?? "[absent]"}`);
     error.code = "unsupported-readout-kind";
