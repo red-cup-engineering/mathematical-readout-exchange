@@ -7,10 +7,6 @@ import {
 import agentCardTemplate from "../content/agent-cards/mathematical-readout-exchange.json";
 import jwks from "../content/agent-card-signing/jwks.json";
 import {
-  decodeCoverNerveRequest,
-  executeCoverNerveDie,
-} from "@lenticule-science/cover-nerve-rank-readout-service";
-import {
   executeRelationalGraphReadout,
   mathematicalReadoutRequestKind,
   RELATIONAL_GRAPH_READOUT,
@@ -66,12 +62,12 @@ async function signedAgentCard(request, env) {
   const origin = new URL(request.url).origin;
   const card = structuredClone(agentCardTemplate);
   card.version = "2.0.0";
-  card.description = "Cloud-mounted A2A 1.0 face for typed CoverNerve count and normalized relational-graph readouts; pre-release until independent assay and market induction.";
+  card.description = "Cloud-mounted A2A 1.0 face for normalized relational-graph metrology; pre-release until independent assay and market induction.";
   card.supportedInterfaces = [
     { url: `${origin}/a2a/jsonrpc`, protocolBinding: "JSONRPC", tenant: "", protocolVersion: "1.0" },
     { url: `${origin}/a2a/rest`, protocolBinding: "HTTP+JSON", tenant: "", protocolVersion: "1.0" },
   ];
-  card.skills[0].description = "Accepts exactly one canonical typed CoverNerveRankRequest.v1 RMN value and returns one deterministic CoverNerveRankResult.v1 plus separately qualified release and resource metadata.";
+  card.skills[0].description = "Accepts exactly one canonical normalized relational-graph RMN value and returns its deterministic metrology result plus separately qualified release and resource metadata.";
   card.signatures = [];
   const normalized = AgentCard.toJSON(AgentCard.fromJSON(card));
   delete normalized.signatures;
@@ -107,18 +103,14 @@ function rmnPart(message) {
 
 function executeMessage(source) {
   const message = Message.fromJSON(source);
-  if (message.role !== Role.ROLE_USER) throw new Error("CoverNerve node requires an A2A ROLE_USER message");
+  if (message.role !== Role.ROLE_USER) throw new Error("mathematical relational-graph service requires an A2A ROLE_USER message");
   const input = rmnPart(Message.toJSON(message));
   const inputBytes = bytesFromBase64(input.raw);
   const requestKind = mathematicalReadoutRequestKind(inputBytes);
   const started = performance.now();
   let result;
   let filename;
-  if (requestKind === "CoverNerveRankRequest.v1") {
-    decodeCoverNerveRequest(inputBytes);
-    result = executeCoverNerveDie(inputBytes);
-    filename = "cover-nerve-result.rmn.cbor";
-  } else if (requestKind === RELATIONAL_GRAPH_READOUT.input) {
+  if (requestKind === RELATIONAL_GRAPH_READOUT.input) {
     result = executeRelationalGraphReadout(inputBytes);
     filename = "relational-graph-result.rmn.cbor";
   } else {
@@ -168,14 +160,14 @@ async function invoke(request) {
     try {
       return json({ jsonrpc: "2.0", id: body.id, result: executeMessage(body.params.message) });
     } catch (error) {
-      return json({ jsonrpc: "2.0", id: body.id, error: { code: -32602, message: error.message, data: { disposition: "refused", code: error.code ?? "cover-nerve-refusal" } } }, { status: 400 });
+      return json({ jsonrpc: "2.0", id: body.id, error: { code: -32602, message: error.message, data: { disposition: "refused", code: error.code ?? "relational-graph-refusal" } } }, { status: 400 });
     }
   }
   if (!body?.message) return json({ error: { code: "invalid-a2a-request", message: "message is required" } }, { status: 400 });
   try {
     return json({ message: executeMessage(body.message) });
   } catch (error) {
-    return json({ error: { code: error.code ?? "cover-nerve-refusal", message: error.message, disposition: "refused" } }, { status: 400 });
+    return json({ error: { code: error.code ?? "relational-graph-refusal", message: error.message, disposition: "refused" } }, { status: 400 });
   }
 }
 

@@ -6,11 +6,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Message, Role } from "@a2a-js/sdk";
 import { extractRmnPart, rmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
-import {
-  decodeCoverNerveRequest,
-  executeCoverNerveDie,
-} from "@lenticule-science/cover-nerve-rank-readout-service";
-import { attestMathematicalSources } from "../src/mathematical-source-attestation.mjs";
+import { attestCoverNerveSources } from "@lenticule-science/cover-nerve-rank-readout-service";
 import {
   executeRelationalGraphReadout,
   mathematicalReadoutRequestKind,
@@ -34,11 +30,7 @@ function measuredReadout(inputBytes) {
   const requestKind = mathematicalReadoutRequestKind(inputBytes);
   let dieResult;
   let filename;
-  if (requestKind === "CoverNerveRankRequest.v1") {
-    decodeCoverNerveRequest(inputBytes);
-    dieResult = executeCoverNerveDie(inputBytes);
-    filename = "cover-nerve-result.rmn.cbor";
-  } else if (requestKind === RELATIONAL_GRAPH_READOUT.input) {
+  if (requestKind === RELATIONAL_GRAPH_READOUT.input) {
     dieResult = executeRelationalGraphReadout(inputBytes);
     filename = "relational-graph-result.rmn.cbor";
   } else if (requestKind === SILOXANE_ZEOLITE_RIGIDITY.input) {
@@ -54,11 +46,11 @@ function measuredReadout(inputBytes) {
   return {
     dieResult,
     filename,
-    certificate: attestMathematicalSources(),
+    certificate: attestCoverNerveSources(),
     resourceEffects: {
       "fuel-consumed": exactFraction(cpu.user + cpu.system, 1_000_000),
       "wall-time-seconds": exactFraction(wallNanoseconds, 1_000_000_000),
-      denomination: "mathematical-readout-exchange-cpu-seconds",
+      denomination: "mathematical-relational-graph-service-cpu-seconds",
       settled: false,
     },
   };

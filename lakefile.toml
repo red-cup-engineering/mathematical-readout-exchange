@@ -1,5 +1,0 @@
-name = "mathematical-readout-exchange"
-
-[[require]]
-name = "Obsmetrologia"
-path = "../../src/services/obsmetrologia"
