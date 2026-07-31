@@ -21,48 +21,6 @@
     "micro-enterprise",
     "lenticule-science"
   ],
-  "x-agentic-metro-enterprise": {
-    "node-id": "mathematical-readout-exchange",
-    "actor": "urn:ame:mathematical-readout-exchange",
-    "organizational-kind": "micro-enterprise",
-    "owners": [
-      "obsmetrological-services-section"
-    ],
-    "service-level": "union",
-    "admission": "an A2A RMN request naming a normalized finite relational graph or a siloxane-zeolite rigidity simulation",
-    "refusal": "invalid input, source drift, or an unqualified equivalence claim",
-    "implemented-operations": [
-      "attest-mathematical-source-bytes",
-      "project-finite-relational-graph-metrology",
-      "assay-siloxane-zeolite-rigidity-surrogate2d",
-      "discharge-generic-2d-pebble-judgment",
-      "serve-signed-a2a",
-      "measure-local-resource-use"
-    ],
-    "unimplemented-operations": [
-      "formally-verified-Lean-extraction",
-      "serve-local-http-json-rpc",
-      "ActivityPub-federation",
-      "x402-settlement"
-    ],
-    "operation-catalog": {
-      "obsmetrologia.relationalGraph.readout": {
-        "transport": "a2a-1.0-rmn-cbor",
-        "accepts": "{ vertices: string[], edges: [string,string][] } — at least one explicitly sorted unique vertex and canonical sorted unique simple edges",
-        "returns": "{ entities, cells, components, componentPartition, h0rank, h1rank, coordinationFree, landauerBits, coordinationCost, exactRank, harmonicRank, cost, certificate }"
-      },
-      "obsmetrologia.siloxaneZeolite.rigiditySurrogate2d": {
-        "transport": "json-stdio",
-        "accepts": "{ conductivityGrid: number[][], sigmaMatrix: number > 0, thresholds: number[] in [0,1] }",
-        "returns": "{ model: 'surrogate2d', phiGrid, sweep, limitations } — planar 4-neighbor generic 2-D rigidity assay only"
-      },
-      "obsmetrologia.generic2d.pebbleJudgment": {
-        "transport": "node-esm-export",
-        "accepts": "{ atomId: string, vertices: unique string[], contacts: unique undirected [string,string][] } — the caller supplies the exact named causal cone and contact relation",
-        "returns": "{ model, atomId, vertices, accepted, rejected, scope, limitations } — generic planar (2,3) independence only; never a grid-to-atom, 3-D, MD, or DFT claim"
-      }
-    }
-  },
   "bin": {
     "serve-mathematical-readout-exchange-a2a": "./bin/serve-a2a.mjs",
     "execute-mathematical-readout-exchange-a2a-task": "./bin/execute-a2a-task.mjs",
@@ -80,37 +38,15 @@
     "@red-cup-engineering/a2a-contracted-agent-service": "2.0.4",
     "@red-cup-engineering/a2a-rmn-part-service": "1.0.0",
     "@red-cup-engineering/a2a-rmn-task-client-service": "1.1.0",
-    "@red-cup-engineering/rmn-semantic-conformance": "6.0.0",
-    "@red-cup-engineering/http-server": "0.0.0",
+    "@red-cup-engineering/rmn-semantic-conformance": "6.0.1",
+    "@red-cup-engineering/http-server": "0.0.2",
     "@lenticule-science/cover-nerve-rank-readout-service": "1.0.0",
-    "@lenticule-science/rmn-semantic-conformance-die": "6.0.0",
+    "@lenticule-science/rmn-semantic-conformance-die": "6.0.1",
     "@lenticule-science/rwil-rdf-projection-service": "1.0.2"
   },
   "overrides": {
     "@red-cup-engineering/a2a-contracted-agent-service": "2.0.4",
     "@red-cup-engineering/a2a-task-state-custody-service": "1.0.5"
   },
-  "license": "UNLICENSED",
-  "x-semiotic-voxel": {
-    "profile": "org.harmonious-union.semiotic-voxel.v1",
-    "owner": "lenticule-science",
-    "kind": "actor",
-    "actor": "urn:ame:mathematical-readout-exchange",
-    "operations": [
-      "obsmetrologia.relationalGraph.readout",
-      "obsmetrologia.siloxaneZeolite.rigiditySurrogate2d",
-      "obsmetrologia.generic2d.pebbleJudgment"
-    ],
-    "capabilities": [
-      {
-        "capability": "mathematical-readout-exchange",
-        "faces": [
-          "obsmetrologia.relationalGraph.readout",
-          "obsmetrologia.siloxaneZeolite.rigiditySurrogate2d",
-          "obsmetrologia.generic2d.pebbleJudgment"
-        ]
-      }
-    ],
-    "package": "@lenticule-science/mathematical-readout-exchange"
-  }
+  "license": "UNLICENSED"
 }

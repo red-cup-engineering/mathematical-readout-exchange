@@ -62,7 +62,7 @@ async function signedAgentCard(request, env) {
   const origin = new URL(request.url).origin;
   const card = structuredClone(agentCardTemplate);
   card.version = "2.0.0";
-  card.description = "Cloud-mounted A2A 1.0 face for normalized relational-graph metrology; pre-release until independent assay and market induction.";
+  card.description = "Cloud-mounted A2A 1.0 face for normalized relational-graph metrology; pre-release until exact attributable replay evidence and market induction are available.";
   card.supportedInterfaces = [
     { url: `${origin}/a2a/jsonrpc`, protocolBinding: "JSONRPC", tenant: "", protocolVersion: "1.0" },
     { url: `${origin}/a2a/rest`, protocolBinding: "HTTP+JSON", tenant: "", protocolVersion: "1.0" },
