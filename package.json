@@ -22,15 +22,15 @@
     "lenticule-science"
   ],
   "bin": {
-    "serve-mathematical-readout-exchange-a2a": "./bin/serve-a2a.mjs",
-    "execute-mathematical-readout-exchange-a2a-task": "./bin/execute-a2a-task.mjs",
-    "run-siloxane-zeolite-rigidity": "./bin/run-siloxane-zeolite-rigidity.mjs"
+    "serve-mathematical-readout-exchange-a2a": "./scripts/serve-a2a.mjs",
+    "execute-mathematical-readout-exchange-a2a-task": "./scripts/execute-a2a-task.mjs",
+    "run-siloxane-zeolite-rigidity": "./scripts/run-siloxane-zeolite-rigidity.mjs"
   },
   "scripts": {
-    "start": "node bin/serve-a2a.mjs",
-    "serve:a2a": "node bin/serve-a2a.mjs",
+    "start": "node scripts/serve-a2a.mjs",
+    "serve:a2a": "node scripts/serve-a2a.mjs",
     "test": "node --test test/*.test.mjs",
-    "verify": "node src/verify-enterprise.mjs && node --check bin/serve-a2a.mjs && node --check bin/execute-a2a-task.mjs && node --check src/relational-graph.mjs && node --check src/relational-graph-protocol.mjs && node --test test/*.test.mjs"
+    "verify": "node src/verify-enterprise.mjs && node --check scripts/serve-a2a.mjs && node --check scripts/execute-a2a-task.mjs && node --check src/relational-graph.mjs && node --check src/relational-graph-protocol.mjs && node --test test/*.test.mjs"
   },
   "dependencies": {
     "@a2a-js/sdk": "1.0.0-beta.0",
@@ -42,7 +42,7 @@
     "@red-cup-engineering/http-server": "0.0.2",
     "@lenticule-science/cover-nerve-rank-readout-service": "1.0.0",
     "@lenticule-science/rmn-semantic-conformance-die": "6.0.1",
-    "@lenticule-science/rwil-rdf-projection-service": "1.0.2"
+    "@lenticule-science/witness-journal-rdf-projection-service": "1.0.2"
   },
   "overrides": {
     "@red-cup-engineering/a2a-contracted-agent-service": "2.0.4",
