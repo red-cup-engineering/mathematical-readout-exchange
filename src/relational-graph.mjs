@@ -1,4 +1,4 @@
-import { semanticId } from "@lenticule-science/rmn-semantic-conformance-die";
+import { semanticId } from "@red-cup-engineering/rmn-semantic-conformance-die";
 
 function refuse(message) {
   const error = new RangeError(message);
