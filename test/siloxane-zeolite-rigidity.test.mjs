@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { userRmnMessage } from "@red-cup-engineering/a2a-rmn-part-service";
-import { executeA2aMessage } from "../bin/execute-a2a-task.mjs";
+import { executeA2aMessage } from "../scripts/execute-a2a-task.mjs";
 import {
   decodeSiloxaneZeoliteRigidityResult,
   encodeSiloxaneZeoliteRigidityRequest,

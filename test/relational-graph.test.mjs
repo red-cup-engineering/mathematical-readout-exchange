@@ -9,7 +9,7 @@ import {
   executeRelationalGraphReadout,
 } from "../src/relational-graph-protocol.mjs";
 import { userRmnMessage } from "@red-cup-engineering/a2a-rmn-part-service";
-import { executeA2aMessage } from "../bin/execute-a2a-task.mjs";
+import { executeA2aMessage } from "../scripts/execute-a2a-task.mjs";
 
 test("relation graph identities are canonical RMN ni URIs", () => {
   const graph = relationGraphOfCells([
