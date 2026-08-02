@@ -11,7 +11,7 @@ serveContractedAgent({
   baseUrl: process.env.BASE_URL,
   agentCard: resolve(ROOT, "content/agent-cards/mathematical-readout-exchange.json"),
   executor: process.execPath,
-  executorArgs: [resolve(ROOT, "bin/execute-a2a-task.mjs")],
+  executorArgs: [resolve(ROOT, "scripts/execute-a2a-task.mjs")],
 }).then(({ server, baseUrl }) => {
   process.stdout.write(`${baseUrl}\n`);
   const stop = () => server.close(() => process.exit(0));

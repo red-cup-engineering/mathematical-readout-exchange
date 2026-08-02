@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { userRmnMessage, extractRmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
-import { a2aResultMetadata, a2aResultParts, sendRmnTask } from "@red-cup-engineering/a2a-rmn-task-client-service/src/send-rmn-task.mjs";
-import { SOVEREIGN_CIRCUIT_INTERFACE_EXTENSION } from "@red-cup-engineering/rmn-semantic-conformance/src/hierarchical-circuit.mjs";
+import { a2aResultMetadata, a2aResultParts, sendRmnTask } from "@red-cup-engineering/a2a-rmn-task-client-service";
+import { SOVEREIGN_CIRCUIT_INTERFACE_EXTENSION } from "@red-cup-engineering/relation-model-notation-runtime/hierarchical-circuit";
 import {
   decodeRelationalGraphResult,
   encodeRelationalGraphRequest,

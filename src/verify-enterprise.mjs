@@ -14,8 +14,8 @@ const required = [
   "content/agent-card-signing/jwks.json",
   "data/agent-card-signing/ed25519-private.pem",
   "src/relational-graph-protocol.mjs",
-  "bin/execute-a2a-task.mjs",
-  "bin/serve-a2a.mjs",
+  "scripts/execute-a2a-task.mjs",
+  "scripts/serve-a2a.mjs",
   "package.json",
 ];
 

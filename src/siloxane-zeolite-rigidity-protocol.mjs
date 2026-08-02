@@ -1,12 +1,12 @@
 import {
   decodeRelationalValue,
   encodeRelationalValue,
-} from "@red-cup-engineering/rmn-semantic-conformance-die/relational-value";
+} from "@red-cup-engineering/relation-model-notation-runtime/relational-value";
 import {
   decodeSemantic,
   semanticBytes,
   semanticId,
-} from "@red-cup-engineering/rmn-semantic-conformance-die";
+} from "@red-cup-engineering/relation-model-notation-runtime";
 import {
   runSiloxaneZeoliteRigidity,
   validateSiloxaneZeoliteRigidityInput,
