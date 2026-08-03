@@ -5,22 +5,22 @@ import {
 import {
   decodeSemantic,
   semanticBytes,
-  semanticId,
 } from "@red-cup-engineering/relation-model-notation-runtime";
 import {
   runSiloxaneZeoliteRigidity,
   validateSiloxaneZeoliteRigidityInput,
 } from "./siloxane-zeolite-rigidity.mjs";
+import { jsonId } from "./semantic-identity.mjs";
 
 export const SILOXANE_ZEOLITE_RIGIDITY = Object.freeze({
   input: "SiloxaneZeoliteRigiditySurrogate2dRequest.v1",
   output: "SiloxaneZeoliteRigiditySurrogate2dResult.v1",
 });
 
-function encode(value) {
+function encode(value, objectKind) {
   const relational = encodeRelationalValue(value);
   const term = ["ascribe", relational.type, relational.term];
-  return { bytes: semanticBytes(term), id: semanticId(term), term };
+  return { bytes: semanticBytes(term), id: jsonId(term, objectKind), term };
 }
 
 function decode(bytes) {
@@ -41,7 +41,7 @@ export function encodeSiloxaneZeoliteRigidityRequest(input) {
     conductivityGrid: normalized.grid,
     sigmaMatrix: normalized.sigmaMatrix,
     thresholds: normalized.thresholds,
-  });
+  }, "lenticule.mathematical-readout.siloxane-zeolite-request");
 }
 
 export function executeSiloxaneZeoliteRigidityReadout(bytes) {
@@ -52,8 +52,8 @@ export function executeSiloxaneZeoliteRigidityReadout(bytes) {
     error.code = "wrong-die-input";
     throw error;
   }
-  const result = encode({ kind: SILOXANE_ZEOLITE_RIGIDITY.output, ...runSiloxaneZeoliteRigidity(request) });
-  return { inputId: semanticId(input.term), ...result };
+  const result = encode({ kind: SILOXANE_ZEOLITE_RIGIDITY.output, ...runSiloxaneZeoliteRigidity(request) }, "lenticule.mathematical-readout.siloxane-zeolite-result");
+  return { inputId: jsonId(input.term, "lenticule.mathematical-readout.siloxane-zeolite-request"), ...result };
 }
 
 export function decodeSiloxaneZeoliteRigidityResult(bytes) {

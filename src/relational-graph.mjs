@@ -1,4 +1,4 @@
-import { semanticId } from "@red-cup-engineering/relation-model-notation-runtime";
+import { jsonId } from "./semantic-identity.mjs";
 
 function refuse(message) {
   const error = new RangeError(message);
@@ -29,7 +29,7 @@ export function relationGraphOfCells(cells) {
   const terms = [];
   const index = new Map();
   const at = (value) => {
-    const id = semanticId(value);
+    const id = jsonId(value, "lenticule.mathematical-readout.relation-cell-endpoint");
     if (!index.has(id)) { index.set(id, terms.length); terms.push(id); }
     return index.get(id);
   };

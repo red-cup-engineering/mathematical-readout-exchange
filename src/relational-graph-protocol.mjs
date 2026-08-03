@@ -5,7 +5,6 @@ import {
 import {
   decodeSemantic,
   semanticBytes,
-  semanticId,
 } from "@red-cup-engineering/relation-model-notation-runtime";
 import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-readout-service/function";
 import {
@@ -13,16 +12,17 @@ import {
   hodgeDecomposition,
   relationGraphOfNormalizedEdges,
 } from "./relational-graph.mjs";
+import { jsonId } from "./semantic-identity.mjs";
 
 export const RELATIONAL_GRAPH_READOUT = Object.freeze({
   input: "NormalizedRelationalGraphReadoutRequest.v1",
   output: "NormalizedRelationalGraphReadoutResult.v1",
 });
 
-function ascribedValue(value) {
+function ascribedValue(value, objectKind) {
   const encoded = encodeRelationalValue(value);
   const term = ["ascribe", encoded.type, encoded.term];
-  return { bytes: semanticBytes(term), id: semanticId(term), term };
+  return { bytes: semanticBytes(term), id: jsonId(term, objectKind), term };
 }
 
 export function decodeAscribedValue(bytes) {
@@ -46,7 +46,7 @@ export function mathematicalReadoutRequestKind(bytes) {
 }
 
 export function encodeRelationalGraphRequest({ vertices, edges }) {
-  return ascribedValue({ kind: RELATIONAL_GRAPH_READOUT.input, vertices, edges });
+  return ascribedValue({ kind: RELATIONAL_GRAPH_READOUT.input, vertices, edges }, "lenticule.mathematical-readout.relational-graph-request");
 }
 
 export function decodeRelationalGraphRequest(bytes) {
@@ -71,7 +71,7 @@ export function decodeRelationalGraphRequest(bytes) {
 }
 
 export function encodeRelationalGraphResult(readout) {
-  return ascribedValue({ kind: RELATIONAL_GRAPH_READOUT.output, ...readout });
+  return ascribedValue({ kind: RELATIONAL_GRAPH_READOUT.output, ...readout }, "lenticule.mathematical-readout.relational-graph-result");
 }
 
 export function decodeRelationalGraphResult(bytes) {
@@ -116,5 +116,5 @@ export function executeRelationalGraphReadout(inputBytes) {
     harmonicRank: hodge.harmonic,
     componentPartition,
   });
-  return { inputId: semanticId(input.term), ...result };
+  return { inputId: jsonId(input.term, "lenticule.mathematical-readout.relational-graph-request"), ...result };
 }
