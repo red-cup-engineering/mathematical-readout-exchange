@@ -4,6 +4,10 @@
  */
 
 const clamp01 = (value) => Math.max(0, Math.min(1, value));
+const MAX_GRID_SITES = 16_384;
+const MAX_SWEEP_EVALUATIONS = 262_144;
+const MAX_CONTACT_VERTICES = 65_536;
+const MAX_CONTACT_EDGES = 262_144;
 
 function requireFiniteNumber(value, name, { positive = false, nonnegative = false } = {}) {
   if (typeof value !== 'number' || !Number.isFinite(value)
@@ -26,6 +30,8 @@ export function validateSiloxaneZeoliteRigidityInput(input) {
     throw new TypeError('conductivityGrid must have at least one column');
   }
   const columns = conductivityGrid[0].length;
+  if (conductivityGrid.length * columns > MAX_GRID_SITES)
+    throw new RangeError("conductivityGrid exceeds 16384 sites in the bounded assay");
   const grid = conductivityGrid.map((row, rowIndex) => {
     if (!Array.isArray(row) || row.length !== columns) {
       throw new TypeError('conductivityGrid must be rectangular');
@@ -38,6 +44,8 @@ export function validateSiloxaneZeoliteRigidityInput(input) {
   if (!Array.isArray(thresholds) || thresholds.length === 0) {
     throw new TypeError('thresholds must be a non-empty array of values in [0, 1]');
   }
+  if (thresholds.length * grid.length * columns > MAX_SWEEP_EVALUATIONS)
+    throw new RangeError("threshold sweep exceeds the bounded assay workload");
   const normalizedThresholds = thresholds.map((threshold, index) => {
     requireFiniteNumber(threshold, `thresholds[${index}]`);
     if (threshold < 0 || threshold > 1) throw new RangeError(`thresholds[${index}] must be in [0, 1]`);
@@ -80,31 +88,57 @@ function connectedComponents(vertices, edges) {
  * deterministic, so the selected basis and rejected-edge list are stable.
  */
 export function generic2dRigidityRank(vertexCount, edges) {
+  if (!Number.isSafeInteger(vertexCount) || vertexCount < 1 || vertexCount > MAX_CONTACT_VERTICES)
+    throw new RangeError("pebble game requires 1..65536 finite contact vertices");
+  if (!Array.isArray(edges) || edges.length > MAX_CONTACT_EDGES)
+    throw new RangeError("pebble game exceeds 262144 contact edges");
+  for (const edge of edges) {
+    if (!Array.isArray(edge) || edge.length !== 2 ||
+      edge.some(v => !Number.isSafeInteger(v) || v < 0 || v >= vertexCount) ||
+      edge[0] === edge[1])
+      throw new TypeError("pebble game edges must join distinct indexed vertices");
+  }
   const free = Array(vertexCount).fill(2);
   const directed = edges.map(([left, right]) => ({ tail: left, head: right }));
   const outgoing = Array.from({ length: vertexCount }, () => []);
   const accepted = [];
   const rejected = [];
 
-  function moveFreePebble(vertex, visited, forbidden) {
-    visited.add(vertex);
-    for (const edgeIndex of [...outgoing[vertex]]) {
-      const edge = directed[edgeIndex];
-      const next = edge.head;
-      // The other endpoint is held fixed while collecting pebbles.  Without
-      // this exclusion K4 would incorrectly acquire a fourth constraint.
-      if (next === forbidden || visited.has(next)
-        || (free[next] === 0 && !moveFreePebble(next, visited, forbidden))) continue;
-      const position = outgoing[vertex].indexOf(edgeIndex);
-      outgoing[vertex].splice(position, 1);
-      outgoing[next].push(edgeIndex);
-      edge.tail = next;
-      edge.head = vertex;
-      free[next] -= 1;
-      free[vertex] += 1;
-      return true;
+  // Iterative depth-first pebble transfer. Preserve the same deterministic
+  // adjacency traversal and forbid crossing the opposite endpoint, but reverse
+  // a discovered augmenting path from its free leaf without JS recursion.
+  function moveFreePebble(start, forbidden) {
+    const visited = new Set([start]);
+    const incoming = new Map(); // vertex -> { parent, edgeIndex }
+    const stack = [{ vertex: start, next: 0 }];
+    let terminal = null;
+    while (stack.length) {
+      const frame = stack.at(-1);
+      const candidates = outgoing[frame.vertex];
+      if (frame.next === candidates.length) { stack.pop(); continue; }
+      const edgeIndex = candidates[frame.next++];
+      const next = directed[edgeIndex].head;
+      if (next === forbidden || visited.has(next)) continue;
+      visited.add(next);
+      incoming.set(next, { parent: frame.vertex, edgeIndex });
+      if (free[next] > 0) { terminal = next; break; }
+      stack.push({ vertex: next, next: 0 });
     }
-    return false;
+    if (terminal === null) return false;
+    for (let vertex = terminal; vertex !== start;) {
+      const { parent, edgeIndex } = incoming.get(vertex);
+      const out = outgoing[parent];
+      const position = out.indexOf(edgeIndex);
+      if (position < 0) throw new Error("pebble orientation and adjacency disagree");
+      out.splice(position, 1);
+      outgoing[vertex].push(edgeIndex);
+      directed[edgeIndex].tail = vertex;
+      directed[edgeIndex].head = parent;
+      free[vertex] -= 1;
+      free[parent] += 1;
+      vertex = parent;
+    }
+    return true;
   }
 
   for (let edgeIndex = 0; edgeIndex < edges.length; edgeIndex += 1) {
@@ -113,8 +147,8 @@ export function generic2dRigidityRank(vertexCount, edges) {
     // A (2,3)-game needs l + 1 = 4 endpoint pebbles before a new edge may
     // consume one; this enforces the global m <= 2n - 3 Laman bound as well.
     while (free[left] + free[right] < 4 && found) {
-      found = moveFreePebble(left, new Set(), right);
-      if (free[left] + free[right] < 4 && !found) found = moveFreePebble(right, new Set(), left);
+      found = moveFreePebble(left, right);
+      if (free[left] + free[right] < 4 && !found) found = moveFreePebble(right, left);
     }
     if (free[left] + free[right] < 4) {
       rejected.push(edgeIndex);
@@ -207,7 +241,10 @@ function assayThreshold(phiGrid, threshold) {
 
 export function runSiloxaneZeoliteRigidity(input) {
   const { grid, sigmaMatrix, thresholds, rows, columns } = validateSiloxaneZeoliteRigidityInput(input);
-  const phiGrid = grid.map((row) => row.map((sigma) => clamp01(1 - (sigma / sigmaMatrix) ** 1.5)));
+  // Saturated conductivity is exactly zero phi; short-circuit before
+  // potentially overflowing sigma/sigmaMatrix at extreme finite scales.
+  const phiGrid = grid.map((row) => row.map((sigma) =>
+    sigma >= sigmaMatrix ? 0 : clamp01(1 - (sigma / sigmaMatrix) ** 1.5)));
   return {
     model: 'surrogate2d',
     scope: 'thresholded 4-neighbor planar conductivity-grid contact graph with generic 2-D rigidity rank',
