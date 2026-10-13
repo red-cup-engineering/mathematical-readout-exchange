@@ -7,7 +7,7 @@ import {
   semanticBytes,
 } from "@red-cup-engineering/relation-model-notation-runtime";
 import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-readout-service/function";
-import { normalizedGraphSummary } from "./normalized-graph.mjs";
+import { normalizedGraphSummary, assertNormalizedGraphResult } from "./normalized-graph.mjs";
 import { jsonId } from "./semantic-identity.mjs";
 
 export const RELATIONAL_GRAPH_READOUT = Object.freeze({
@@ -77,19 +77,7 @@ export function decodeRelationalGraphResult(bytes) {
     error.code = "wrong-die-output";
     throw error;
   }
-  const partition = value.componentPartition;
-  const canonicalPartition = Array.isArray(partition)
-    && partition.length === value.components
-    && partition.every((component) => Array.isArray(component) && component.length > 0
-      && component.every((vertex, index) => typeof vertex === "string" && vertex.length > 0
-        && (index === 0 || component[index - 1] < vertex)))
-    && partition.every((component, index) => index === 0 || partition[index - 1][0] < component[0]);
-  const flattened = canonicalPartition ? partition.flat() : [];
-  if (!canonicalPartition || flattened.length !== value.entities || new Set(flattened).size !== flattened.length) {
-    const error = new Error("relational-graph output omits its canonical component partition");
-    error.code = "wrong-die-output";
-    throw error;
-  }
+  assertNormalizedGraphResult(value);
   return decoded;
 }
 
