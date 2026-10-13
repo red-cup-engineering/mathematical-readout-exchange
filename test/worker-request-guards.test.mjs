@@ -8,6 +8,7 @@ import {
 const endpoint = "https://readout.example/a2a/jsonrpc";
 const request = (body, headers = {}) => new Request(endpoint, {
   method: "POST", headers: { "content-type": "application/json", ...headers }, body,
+  ...(body instanceof ReadableStream ? { duplex: "half" } : {}),
 });
 const refuses = (code) => (error) => error instanceof ReadoutInputError && error.code === code;
 
@@ -15,7 +16,7 @@ test("streamed JSON decodes normally without requiring a Content-Length", async 
   const body = JSON.stringify({ jsonrpc: "2.0", method: "message/send", params: { message: { parts: [] } } });
   const r = request(new ReadableStream({
     start(controller) { controller.enqueue(new TextEncoder().encode(body)); controller.close(); },
-  }), { "content-length": undefined });
+  }));
   assert.equal((await readBoundedA2aJson(r)).method, "message/send");
 });
 
