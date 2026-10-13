@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { assertNormalizedGraphResult } from "./normalized-graph.mjs";
 import { userRmnMessage, extractRmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
 import { a2aResultMetadata, a2aResultParts, sendRmnTask } from "@red-cup-engineering/a2a-rmn-task-client-service";
 import { SOVEREIGN_CIRCUIT_INTERFACE_EXTENSION } from "@red-cup-engineering/relation-model-notation-runtime/hierarchical-circuit";
@@ -15,7 +16,7 @@ function requireAgentUrl(agentUrl) {
   if (typeof agentUrl !== "string" || !/^https?:\/\//u.test(agentUrl)) throw new Error("one absolute mathematical-readout Agent Card URL is required");
 }
 
-async function requestReadout({ agentUrl, request, filename, decode, signal, send }) {
+async function requestReadout({ agentUrl, request, filename, decode, verify, signal, send }) {
   requireAgentUrl(agentUrl);
   const exchange = await send({
     agentUrl,
@@ -27,6 +28,7 @@ async function requestReadout({ agentUrl, request, filename, decode, signal, sen
   if (a2aResultMetadata(exchange.result).disposition !== "completion") throw new Error("mathematical-readout-exchange refused");
   const part = extractRmnPart(a2aResultParts(exchange.result));
   const decoded = decode(part.bytes);
+  if (verify) verify(decoded.value);
   return Object.freeze({
     ...decoded.value,
     request: request.id,
@@ -36,12 +38,19 @@ async function requestReadout({ agentUrl, request, filename, decode, signal, sen
 }
 
 export async function requestRelationalGraphReadout({ agentUrl, graph, signal, send = sendRmnTask }) {
-  const request = encodeRelationalGraphRequest(graph);
+  // A caller can mutate graph during an asynchronous provider call; bind
+  // validation to the exact graph submitted, not its later mutable object.
+  const submitted = {
+    vertices: [...graph.vertices],
+    edges: graph.edges.map(edge => [...edge]),
+  };
+  const request = encodeRelationalGraphRequest(submitted);
   return requestReadout({
     agentUrl,
     request,
     filename: "relational-graph-request.rmn.cbor",
     decode: decodeRelationalGraphResult,
+    verify: result => assertNormalizedGraphResult(result, submitted),
     signal,
     send,
   });
