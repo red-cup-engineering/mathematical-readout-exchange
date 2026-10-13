@@ -7,11 +7,7 @@ import {
   semanticBytes,
 } from "@red-cup-engineering/relation-model-notation-runtime";
 import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-readout-service/function";
-import {
-  componentIndices,
-  hodgeDecomposition,
-  relationGraphOfNormalizedEdges,
-} from "./relational-graph.mjs";
+import { normalizedGraphSummary } from "./normalized-graph.mjs";
 import { jsonId } from "./semantic-identity.mjs";
 
 export const RELATIONAL_GRAPH_READOUT = Object.freeze({
@@ -61,13 +57,12 @@ export function decodeRelationalGraphRequest(bytes) {
     throw error;
   }
   try {
-    relationGraphOfNormalizedEdges(value.vertices, value.edges);
+    return { ...decoded, value, summary: normalizedGraphSummary(value.vertices, value.edges) };
   } catch (cause) {
     const error = new Error(cause.message, { cause });
     error.code = "invalid-relational-graph";
     throw error;
   }
-  return { ...decoded, value };
 }
 
 export function encodeRelationalGraphResult(readout) {
@@ -100,21 +95,20 @@ export function decodeRelationalGraphResult(bytes) {
 
 export function executeRelationalGraphReadout(inputBytes) {
   const input = decodeRelationalGraphRequest(inputBytes);
-  const graph = relationGraphOfNormalizedEdges(input.value.vertices, input.value.edges);
-  const componentPartition = componentIndices(graph)
-    .map((component) => component.map((index) => input.value.vertices[index]));
-  const hodge = hodgeDecomposition(graph, componentPartition.length);
+  // The validated summary is exact for the normalized simple-graph profile.
+  // Weighted/Laplacian APIs remain separate for requests requiring matrices.
+  const { summary } = input;
   const nerve = {
-    entities: input.value.vertices.length,
-    cells: input.value.edges.length,
-    components: componentPartition.length,
+    entities: summary.entities,
+    cells: summary.cells,
+    components: summary.components,
   };
   const result = encodeRelationalGraphResult({
     ...nerve,
     ...computeCoverNerve(nerve),
-    exactRank: hodge.exact,
-    harmonicRank: hodge.harmonic,
-    componentPartition,
+    exactRank: summary.exactRank,
+    harmonicRank: summary.harmonicRank,
+    componentPartition: summary.componentPartition,
   });
   return { inputId: jsonId(input.term, "lenticule.mathematical-readout.relational-graph-request"), ...result };
 }
