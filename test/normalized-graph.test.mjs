@@ -63,7 +63,7 @@ test("remote mathematical readout must satisfy graph Euler/homology identities",
   for (const altered of [
     { h0rank: 7 }, { h1rank: 1 }, { exactRank: 3 }, { harmonicRank: -1 },
     { entities: 5 }, { cells: 8 }, { components: 3 }, { exactRank: 1.25 },
-    { h0rank: "2" }, { componentPartition: [["a"],["b","c","d"]] },
+    { h0rank: "2" }, { componentPartition: [["a","b"],["c","d","e"]] },
     { componentPartition: [["a","c","b"],["d"]] },
     { componentPartition: [["a","b","c"],["c"]] },
   ]) {
