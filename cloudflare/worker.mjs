@@ -11,6 +11,7 @@ import {
   mathematicalReadoutRequestKind,
   RELATIONAL_GRAPH_READOUT,
 } from "../src/relational-graph-protocol.mjs";
+import { readBoundedA2aJson, decodeBoundedRmnRaw, verifiedRequestNi } from "./request-guards.mjs";
 
 const SOURCE_CERTIFICATE = Object.freeze({
   kind: "release-source-pin",
@@ -105,7 +106,7 @@ function executeMessage(source) {
   const message = Message.fromJSON(source);
   if (message.role !== Role.ROLE_USER) throw new Error("mathematical relational-graph service requires an A2A ROLE_USER message");
   const input = rmnPart(Message.toJSON(message));
-  const inputBytes = bytesFromBase64(input.raw);
+  const inputBytes = decodeBoundedRmnRaw(input.raw);
   const requestKind = mathematicalReadoutRequestKind(inputBytes);
   const started = performance.now();
   let result;
@@ -130,7 +131,7 @@ function executeMessage(source) {
     }],
     metadata: {
       disposition: "completion",
-      requestNi: input.metadata?.ni ?? result.inputId,
+      requestNi: verifiedRequestNi(input.metadata?.ni, result.inputId),
       responseNi: result.id,
       mathematicalSourceCertificate: SOURCE_CERTIFICATE,
       resourceEffects: {
@@ -152,7 +153,16 @@ function executeMessage(source) {
 }
 
 async function invoke(request) {
-  const body = await request.json();
+  const isRpc = new URL(request.url).pathname.endsWith("/jsonrpc");
+  let body;
+  try { body = await readBoundedA2aJson(request); }
+  catch (error) {
+    const code = error.code ?? "invalid-a2a-request";
+    const status = error.status ?? 400;
+    if (isRpc) return json({ jsonrpc: "2.0", id: null,
+      error: { code: -32600, message: error.message, data: { disposition: "refused", code } } }, { status });
+    return json({ error: { code, message: error.message, disposition: "refused" } }, { status });
+  }
   if (new URL(request.url).pathname.endsWith("/jsonrpc")) {
     if (body?.jsonrpc !== "2.0" || body?.method !== "message/send" || !body?.params?.message) {
       return json({ jsonrpc: "2.0", id: body?.id ?? null, error: { code: -32600, message: "only message/send is implemented" } }, { status: 400 });
