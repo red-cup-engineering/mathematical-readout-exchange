@@ -70,7 +70,7 @@ export function normalizedGraphSummary(vertices,edges){
  * a normalized simple graph's remote readout. This refuses mathematically
  * impossible output even when its CBOR syntax and signature are valid.
  * It does not certify the correspondence to the caller's original graph. */
-export function assertNormalizedGraphResult(value) {
+export function assertNormalizedGraphResult(value, originalGraph) {
   const fields = ["entities", "cells", "components", "h0rank", "h1rank", "exactRank", "harmonicRank"];
   if (value === null || typeof value !== "object" || Array.isArray(value) ||
       fields.some(field => !Number.isSafeInteger(value[field]) || value[field] < 0))
@@ -91,5 +91,15 @@ export function assertNormalizedGraphResult(value) {
   const flat = canonical ? componentPartition.flat() : [];
   if (!canonical || flat.length !== entities || new Set(flat).size !== flat.length)
     throw new TypeError("relational-graph output omits its canonical component partition");
+  if (originalGraph !== undefined) {
+    const expected = normalizedGraphSummary(originalGraph.vertices, originalGraph.edges);
+    if (["entities", "cells", "components", "exactRank", "harmonicRank"]
+      .some(field => value[field] !== expected[field]) ||
+      componentPartition.length !== expected.componentPartition.length ||
+      componentPartition.some((group,index) =>
+        group.length !== expected.componentPartition[index].length ||
+        group.some((vertex,j) => vertex !== expected.componentPartition[index][j])))
+      throw new TypeError("relational-graph output disagrees with the submitted graph");
+  }
   return value;
 }
