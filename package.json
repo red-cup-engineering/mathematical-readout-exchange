@@ -3,7 +3,7 @@
   "version": "0.2.3",
   "private": true,
   "type": "module",
-  "description": "A2A boundary for normalized relational-graph metrology and siloxane-zeolite rigidity simulation.",
+  "description": "A2A mathematical readout exchange, with bounded local exact finite-graph computation for trusted internal consumers and a separately served rigidity simulation.",
   "exports": {
     "./client": "./src/client.mjs",
     "./siloxane-zeolite-rigidity": "./src/siloxane-zeolite-rigidity.mjs",
@@ -13,7 +13,8 @@
       "types": "./types/relational-graph.d.mts",
       "import": "./src/relational-graph.mjs"
     },
-    "./src/client.mjs": "./src/client.mjs"
+    "./src/client.mjs": "./src/client.mjs",
+    "./normalized-graph": "./src/normalized-graph.mjs"
   },
   "keywords": [
     "a2a",
@@ -24,13 +25,15 @@
   "bin": {
     "serve-mathematical-readout-exchange-a2a": "./scripts/serve-a2a.mjs",
     "execute-mathematical-readout-exchange-a2a-task": "./scripts/execute-a2a-task.mjs",
-    "run-siloxane-zeolite-rigidity": "./scripts/run-siloxane-zeolite-rigidity.mjs"
+    "run-siloxane-zeolite-rigidity": "./scripts/run-siloxane-zeolite-rigidity.mjs",
+    "readout-relational-graph": "./scripts/readout-relational-graph.mjs"
   },
   "scripts": {
     "start": "node scripts/serve-a2a.mjs",
     "serve:a2a": "node scripts/serve-a2a.mjs",
     "test": "node --test test/*.test.mjs",
-    "verify": "node src/verify-enterprise.mjs && node --check scripts/serve-a2a.mjs && node --check scripts/execute-a2a-task.mjs && node --check src/relational-graph.mjs && node --check src/relational-graph-protocol.mjs && node --test test/*.test.mjs"
+    "verify": "node src/verify-enterprise.mjs && node --check scripts/serve-a2a.mjs && node --check scripts/execute-a2a-task.mjs && node --check src/relational-graph.mjs && node --check src/relational-graph-protocol.mjs && node --test test/*.test.mjs",
+    "readout:graph": "node scripts/readout-relational-graph.mjs"
   },
   "dependencies": {
     "@a2a-js/sdk": "1.0.0-beta.0",
