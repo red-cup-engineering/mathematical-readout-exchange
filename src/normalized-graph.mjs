@@ -64,3 +64,32 @@ export function normalizedGraphSummary(vertices,edges){
     componentPartition:Object.freeze(componentPartition)
   });
 }
+
+
+/** The minimal independently checkable numerical and partition contract for
+ * a normalized simple graph's remote readout. This refuses mathematically
+ * impossible output even when its CBOR syntax and signature are valid.
+ * It does not certify the correspondence to the caller's original graph. */
+export function assertNormalizedGraphResult(value) {
+  const fields = ["entities", "cells", "components", "h0rank", "h1rank", "exactRank", "harmonicRank"];
+  if (value === null || typeof value !== "object" || Array.isArray(value) ||
+      fields.some(field => !Number.isSafeInteger(value[field]) || value[field] < 0))
+    throw new TypeError("relational-graph output has invalid nonnegative integer ranks");
+  const { entities, cells, components, h0rank, h1rank, exactRank, harmonicRank, componentPartition } = value;
+  if (entities === 0 || components === 0 || components > entities ||
+      exactRank !== entities - components ||
+      harmonicRank !== cells - exactRank ||
+      h0rank !== components || h1rank !== harmonicRank)
+    throw new TypeError("relational-graph output violates exact graph homology ranks");
+
+  const canonical = Array.isArray(componentPartition)
+    && componentPartition.length === components
+    && componentPartition.every(group => Array.isArray(group) && group.length > 0
+      && group.every((vertex, index) => typeof vertex === "string" && vertex.length > 0
+        && (index === 0 || group[index-1] < vertex)))
+    && componentPartition.every((group, index) => index === 0 || componentPartition[index-1][0] < group[0]);
+  const flat = canonical ? componentPartition.flat() : [];
+  if (!canonical || flat.length !== entities || new Set(flat).size !== flat.length)
+    throw new TypeError("relational-graph output omits its canonical component partition");
+  return value;
+}
