@@ -17,6 +17,13 @@ The **existing** `run-siloxane-zeolite-rigidity` entry point now accepts
 Supply it only as an **explicit structural hypothesis**; measured conductivity
 does not by itself reveal which material regions are mechanically bonded.
 
+The missing information is mathematically unavoidable: a fully active `m × n`
+four-neighbor grid has `2mn - m - n` contacts, but generic planar
+rigidity of at least two vertices needs rank `2mn - 3`. When
+`m + n > 3`, the grid is short by `m + n - 3` independent contacts
+before any mechanics can be inferred. Structural contacts must come
+from a separately justified mechanical model or measurement.
+
 Run the five-site rigid member of the Materials ledger's fixed-count
 counterexample through the real local producer:
 
