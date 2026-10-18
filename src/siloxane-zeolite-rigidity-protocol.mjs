@@ -41,6 +41,8 @@ export function encodeSiloxaneZeoliteRigidityRequest(input) {
     conductivityGrid: normalized.grid,
     sigmaMatrix: normalized.sigmaMatrix,
     thresholds: normalized.thresholds,
+    // Omitted for legacy requests to retain their canonical RMN identity.
+    ...(normalized.structuralContacts === null ? {} : { structuralContacts: normalized.structuralContacts }),
   }, "lenticule.mathematical-readout.siloxane-zeolite-request");
 }
 
