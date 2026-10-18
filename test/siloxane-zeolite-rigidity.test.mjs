@@ -60,3 +60,29 @@ test("canonical RMN rigidity requests replay identically and cross the existing 
   const result = decodeSiloxaneZeoliteRigidityResult(Buffer.from(response.parts[0].raw, "base64"));
   assert.equal(result.value.model, "surrogate2d");
 });
+
+test("explicit structural contacts survive typed RMN, local execution and the original A2A consumer", async () => {
+  const hypothesis = {
+    conductivityGrid: [[0, 0, 0, 0, 0]],
+    sigmaMatrix: 1,
+    thresholds: [0.5],
+    structuralContacts: [[0, 1], [0, 2], [1, 2], [0, 3], [1, 3], [1, 4], [2, 4]],
+  };
+  const request = encodeSiloxaneZeoliteRigidityRequest(hypothesis);
+  const local = decodeSiloxaneZeoliteRigidityResult(
+    executeSiloxaneZeoliteRigidityReadout(request.bytes).bytes,
+  ).value;
+  assert.equal(local.sweep[0].generic2dRigidity.rank, 7);
+  assert.equal(local.sweep[0].contactGraph.provenance, "unverified-supplied-contacts");
+  assert.deepEqual(local.input.structuralContacts, hypothesis.structuralContacts);
+
+  const actualConsumer = await executeA2aMessage(
+    userRmnMessage(request.bytes, "siloxane-zeolite-rigidity-request.rmn.cbor"),
+  );
+  assert.equal(actualConsumer.metadata.requestNi, request.id);
+  assert.equal(actualConsumer.metadata.disposition, "completion");
+  const transported = decodeSiloxaneZeoliteRigidityResult(
+    Buffer.from(actualConsumer.parts[0].raw, "base64"),
+  ).value;
+  assert.deepEqual(transported, local);
+});
