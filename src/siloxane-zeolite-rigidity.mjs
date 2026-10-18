@@ -220,13 +220,22 @@ function assayThreshold(phiGrid, threshold, structuralContacts = null) {
     }
   }
   const { components, componentOf } = connectedComponents(active, edges);
-  const rigidity = generic2dRigidityRank(rows * columns, edges);
   const componentEdges = components.map(() => []);
   edges.forEach((edge, edgeIndex) => componentEdges[componentOf.get(edge[0])].push(edgeIndex));
+  // A disjoint union has a direct-sum rigidity matroid. The per-component
+  // games already needed for the output suffice for global rank and
+  // rejected contacts, without a duplicate full-grid pebble game allocating
+  // two pebbles for every inactive site.
+  let rank = 0;
+  const rejectedEdgeIndices = [];
   const componentReadouts = components.map((members, componentIndex) => {
     const localIndex = new Map(members.map((vertex, index) => [vertex, index]));
     const localEdges = componentEdges[componentIndex].map((edgeIndex) => edges[edgeIndex].map((vertex) => localIndex.get(vertex)));
     const local = generic2dRigidityRank(members.length, localEdges);
+    rank += local.rank;
+    rejectedEdgeIndices.push(
+      ...local.rejected.map((index) => componentEdges[componentIndex][index]),
+    );
     const maxRank = Math.max(0, 2 * members.length - 3);
     const left = members.some((vertex) => vertex % columns === 0);
     const right = members.some((vertex) => vertex % columns === columns - 1);
@@ -244,7 +253,7 @@ function assayThreshold(phiGrid, threshold, structuralContacts = null) {
     };
   });
   const nonRigid = new Set(componentReadouts.flatMap((component) => component.rigid ? [] : component.memberVertexIds));
-  const redundantVertices = new Set(rigidity.rejected.flatMap((edgeIndex) => edges[edgeIndex]));
+  const redundantVertices = new Set(rejectedEdgeIndices.flatMap((edgeIndex) => edges[edgeIndex]));
   const site = (vertex) => ({ row: Math.floor(vertex / columns), column: vertex % columns, phi: phiGrid[Math.floor(vertex / columns)][vertex % columns] });
   const compactComponents = componentReadouts.map(({ memberVertexIds, ...component }) => component);
   return {
@@ -260,7 +269,7 @@ function assayThreshold(phiGrid, threshold, structuralContacts = null) {
       spansTopBottom: compactComponents.some((component) => component.spansTopBottom),
     },
     generic2dRigidity: {
-      rank: rigidity.rank,
+      rank,
       maximumComponentRank: componentReadouts.reduce((total, component) => total + component.maximumGeneric2dRank, 0),
       rigidComponentCount: compactComponents.filter((component) => component.rigid).length,
       components: compactComponents,
