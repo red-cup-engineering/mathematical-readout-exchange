@@ -43,6 +43,7 @@ export function encodeSiloxaneZeoliteRigidityRequest(input) {
     thresholds: normalized.thresholds,
     // Omitted for legacy requests to retain their canonical RMN identity.
     ...(normalized.structuralContacts === null ? {} : { structuralContacts: normalized.structuralContacts }),
+    ...(normalized.beforeStructuralContacts === null ? {} : { beforeStructuralContacts: normalized.beforeStructuralContacts }),
   }, "lenticule.mathematical-readout.siloxane-zeolite-request");
 }
 
