@@ -22,7 +22,7 @@ export function validateSiloxaneZeoliteRigidityInput(input) {
   if (input === null || typeof input !== 'object' || Array.isArray(input)) {
     throw new TypeError('input must be an object');
   }
-  const { conductivityGrid, sigmaMatrix, thresholds } = input;
+  const { conductivityGrid, sigmaMatrix, thresholds, structuralContacts } = input;
   if (!Array.isArray(conductivityGrid) || conductivityGrid.length === 0) {
     throw new TypeError('conductivityGrid must be a non-empty rectangular array');
   }
@@ -51,7 +51,33 @@ export function validateSiloxaneZeoliteRigidityInput(input) {
     if (threshold < 0 || threshold > 1) throw new RangeError(`thresholds[${index}] must be in [0, 1]`);
     return threshold;
   });
-  return { grid, sigmaMatrix, thresholds: normalizedThresholds, rows: grid.length, columns };
+  // Contacts are an independently supplied structural hypothesis, NOT an
+  // observation inferred from electrical conductivity. Preserve their order
+  // for deterministic matroid basis readout, but reject duplicate pairs.
+  let normalizedStructuralContacts = null;
+  if (structuralContacts !== undefined) {
+    if (!Array.isArray(structuralContacts) || structuralContacts.length > MAX_CONTACT_EDGES) {
+      throw new TypeError('structuralContacts must be an array within the contact-edge budget');
+    }
+    const seen = new Set();
+    normalizedStructuralContacts = structuralContacts.map((contact, index) => {
+      if (!Array.isArray(contact) || contact.length !== 2
+        || contact.some((vertex) => !Number.isSafeInteger(vertex)
+          || vertex < 0 || vertex >= grid.length * columns)
+        || contact[0] === contact[1]) {
+        throw new TypeError(`structuralContacts[${index}] must join distinct in-grid indexed sites`);
+      }
+      const pair = [...contact].sort((a, b) => a - b);
+      const key = `${pair[0]}:${pair[1]}`;
+      if (seen.has(key)) throw new TypeError('structuralContacts must have unique undirected pairs');
+      seen.add(key);
+      return pair;
+    });
+  }
+  return {
+    grid, sigmaMatrix, thresholds: normalizedThresholds, rows: grid.length, columns,
+    structuralContacts: normalizedStructuralContacts,
+  };
 }
 
 function connectedComponents(vertices, edges) {
@@ -163,7 +189,7 @@ export function generic2dRigidityRank(vertexCount, edges) {
   return { rank: accepted.length, accepted, rejected };
 }
 
-function assayThreshold(phiGrid, threshold) {
+function assayThreshold(phiGrid, threshold, structuralContacts = null) {
   const rows = phiGrid.length;
   const columns = phiGrid[0].length;
   const active = [];
@@ -177,13 +203,20 @@ function assayThreshold(phiGrid, threshold) {
       }
     }
   }
-  const edges = [];
-  for (const vertex of active) {
-    const row = Math.floor(vertex / columns);
-    const column = vertex % columns;
-    for (const [nextRow, nextColumn] of [[row, column + 1], [row + 1, column]]) {
-      const neighbor = nextRow * columns + nextColumn;
-      if (nextRow < rows && nextColumn < columns && activeSet.has(neighbor)) edges.push([vertex, neighbor]);
+  // Conductivity determines the active-site mask, not the existence of
+  // independently hypothesized mechanical contacts. In legacy surrogate
+  // mode only, use four-neighbor grid adjacency for those contacts.
+  const edges = structuralContacts === null
+    ? []
+    : structuralContacts.filter(([left, right]) => activeSet.has(left) && activeSet.has(right));
+  if (structuralContacts === null) {
+    for (const vertex of active) {
+      const row = Math.floor(vertex / columns);
+      const column = vertex % columns;
+      for (const [nextRow, nextColumn] of [[row, column + 1], [row + 1, column]]) {
+        const neighbor = nextRow * columns + nextColumn;
+        if (nextRow < rows && nextColumn < columns && activeSet.has(neighbor)) edges.push([vertex, neighbor]);
+      }
     }
   }
   const { components, componentOf } = connectedComponents(active, edges);
@@ -218,6 +251,7 @@ function assayThreshold(phiGrid, threshold) {
     threshold,
     activeVertexCount: active.length,
     contactGraph: {
+      provenance: structuralContacts === null ? 'inferred-four-neighbor-surrogate' : 'unverified-supplied-contacts',
       vertices: active.length,
       edges: edges.length,
       components: components.length,
@@ -240,21 +274,29 @@ function assayThreshold(phiGrid, threshold) {
 }
 
 export function runSiloxaneZeoliteRigidity(input) {
-  const { grid, sigmaMatrix, thresholds, rows, columns } = validateSiloxaneZeoliteRigidityInput(input);
+  const { grid, sigmaMatrix, thresholds, rows, columns, structuralContacts }
+    = validateSiloxaneZeoliteRigidityInput(input);
   // Saturated conductivity is exactly zero phi; short-circuit before
   // potentially overflowing sigma/sigmaMatrix at extreme finite scales.
   const phiGrid = grid.map((row) => row.map((sigma) =>
     sigma >= sigmaMatrix ? 0 : clamp01(1 - (sigma / sigmaMatrix) ** 1.5)));
   return {
     model: 'surrogate2d',
-    scope: 'thresholded 4-neighbor planar conductivity-grid contact graph with generic 2-D rigidity rank',
+    scope: structuralContacts === null
+      ? 'thresholded 4-neighbor planar conductivity-grid contact graph with generic 2-D rigidity rank'
+      : 'thresholded conductivity-grid sites with explicitly supplied planar structural contacts and generic 2-D rigidity rank',
     limitations: [
       'This is a surrogate2d assay; it does not model 3-D structure, molecular dynamics, or DFT.',
       'It does not estimate or claim a numeric universal phic.',
-      'Pulse suggestions are conservative graph-derived candidates, not experimental operating instructions.',
+      'The structural-contact mode takes caller-supplied graph hypotheses; it does not infer or measure real mechanical bonds from conductivity.',
+      'The legacy 140C/175C+ pulsePlan keys survive for compatibility only. Their assumed zeolite write/erase mechanism was retracted in the October 2026 research ledger; they are not physical operating instructions.',
+      'Pulse suggestions are graph-derived candidates, not validated chemical or thermal interventions.',
     ],
-    input: { rows, columns, sigmaMatrix, thresholds },
+    input: {
+      rows, columns, sigmaMatrix, thresholds,
+      ...(structuralContacts === null ? {} : { structuralContacts }),
+    },
     phiGrid,
-    sweep: thresholds.map((threshold) => assayThreshold(phiGrid, threshold)),
+    sweep: thresholds.map((threshold) => assayThreshold(phiGrid, threshold, structuralContacts)),
   };
 }
