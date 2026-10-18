@@ -22,7 +22,7 @@ export function validateSiloxaneZeoliteRigidityInput(input) {
   if (input === null || typeof input !== 'object' || Array.isArray(input)) {
     throw new TypeError('input must be an object');
   }
-  const { conductivityGrid, sigmaMatrix, thresholds, structuralContacts } = input;
+  const { conductivityGrid, sigmaMatrix, thresholds, structuralContacts, beforeStructuralContacts } = input;
   if (!Array.isArray(conductivityGrid) || conductivityGrid.length === 0) {
     throw new TypeError('conductivityGrid must be a non-empty rectangular array');
   }
@@ -51,32 +51,39 @@ export function validateSiloxaneZeoliteRigidityInput(input) {
     if (threshold < 0 || threshold > 1) throw new RangeError(`thresholds[${index}] must be in [0, 1]`);
     return threshold;
   });
-  // Contacts are an independently supplied structural hypothesis, NOT an
-  // observation inferred from electrical conductivity. Preserve their order
-  // for deterministic matroid basis readout, but reject duplicate pairs.
-  let normalizedStructuralContacts = null;
-  if (structuralContacts !== undefined) {
-    if (!Array.isArray(structuralContacts) || structuralContacts.length > MAX_CONTACT_EDGES) {
-      throw new TypeError('structuralContacts must be an array within the contact-edge budget');
+  // Structural graphs are hypotheses supplied independently from measured
+  // conductivity, and before/after must use the same site-address universe.
+  // The comparator never asserts a real chemical reaction occurred.
+  const parseContacts = (contacts, field) => {
+    if (!Array.isArray(contacts) || contacts.length > MAX_CONTACT_EDGES) {
+      throw new TypeError(`${field} must be an array within the contact-edge budget`);
     }
     const seen = new Set();
-    normalizedStructuralContacts = structuralContacts.map((contact, index) => {
+    return contacts.map((contact, index) => {
       if (!Array.isArray(contact) || contact.length !== 2
         || contact.some((vertex) => !Number.isSafeInteger(vertex)
           || vertex < 0 || vertex >= grid.length * columns)
         || contact[0] === contact[1]) {
-        throw new TypeError(`structuralContacts[${index}] must join distinct in-grid indexed sites`);
+        throw new TypeError(`${field}[${index}] must join distinct in-grid indexed sites`);
       }
       const pair = [...contact].sort((a, b) => a - b);
       const key = `${pair[0]}:${pair[1]}`;
-      if (seen.has(key)) throw new TypeError('structuralContacts must have unique undirected pairs');
+      if (seen.has(key)) throw new TypeError(`${field} must have unique undirected pairs`);
       seen.add(key);
       return pair;
     });
+  };
+  const normalizedStructuralContacts = structuralContacts === undefined
+    ? null : parseContacts(structuralContacts, 'structuralContacts');
+  if (beforeStructuralContacts !== undefined && normalizedStructuralContacts === null) {
+    throw new TypeError('beforeStructuralContacts requires structuralContacts as the after-state');
   }
+  const normalizedBeforeContacts = beforeStructuralContacts === undefined
+    ? null : parseContacts(beforeStructuralContacts, 'beforeStructuralContacts');
   return {
     grid, sigmaMatrix, thresholds: normalizedThresholds, rows: grid.length, columns,
     structuralContacts: normalizedStructuralContacts,
+    beforeStructuralContacts: normalizedBeforeContacts,
   };
 }
 
@@ -189,6 +196,92 @@ export function generic2dRigidityRank(vertexCount, edges) {
   return { rank: accepted.length, accepted, rejected };
 }
 
+/**
+ * Exact finite graph/count ledger over two candidate structural contact
+ * states.  It applies the existing generic-2D pebble game to each full
+ * graph, independently of any conductivity observation or threshold.
+ *
+ * The same |V| and |E| entail the same Euler index and mean coordination,
+ * but NOT the same connected components, cycle charge or generic 2-D rank.
+ * This is a graph comparison, NOT evidence of an associative *chemical*
+ * mechanism or a 3-D phase transition.
+ */
+export function comparePlanarContactStates(vertexCount, before, after) {
+  if (!Number.isSafeInteger(vertexCount) || vertexCount < 1 || vertexCount > MAX_CONTACT_VERTICES) {
+    throw new RangeError('contact-state comparison requires 1..65536 vertices');
+  }
+  const normalize = (contacts, label) => {
+    if (!Array.isArray(contacts) || contacts.length > MAX_CONTACT_EDGES) {
+      throw new TypeError(`${label} must be an array within the contact-edge budget`);
+    }
+    const known = new Set();
+    return contacts.map((contact, index) => {
+      if (!Array.isArray(contact) || contact.length !== 2
+        || contact.some((v) => !Number.isSafeInteger(v) || v < 0 || v >= vertexCount)
+        || contact[0] === contact[1]) {
+        throw new TypeError(`${label}[${index}] must join distinct indexed vertices`);
+      }
+      const edge = [...contact].sort((a, b) => a - b);
+      const key = `${edge[0]}:${edge[1]}`;
+      if (known.has(key)) throw new TypeError(`${label} repeats an undirected contact`);
+      known.add(key);
+      return edge;
+    });
+  };
+  const b = normalize(before, 'before');
+  const a = normalize(after, 'after');
+  const vertices = Array.from({ length: vertexCount }, (_, i) => i);
+  const read = (edges) => {
+    const connected = connectedComponents(vertices, edges);
+    return {
+      vertices: vertexCount,
+      contacts: edges.length,
+      connectedComponents: connected.components.length,
+      eulerIndex: vertexCount - edges.length,
+      cycleRank: edges.length - vertexCount + connected.components.length,
+      meanCoordination: { numerator: String(2 * edges.length), denominator: String(vertexCount) },
+      generic2dRank: generic2dRigidityRank(vertexCount, edges).rank,
+    };
+  };
+  const previous = read(b);
+  const next = read(a);
+  const key = ([v, w]) => `${v}:${w}`;
+  const bSet = new Set(b.map(key));
+  const aSet = new Set(a.map(key));
+  const removed = b.filter((edge) => !aSet.has(key(edge)));
+  const added = a.filter((edge) => !bSet.has(key(edge)));
+  const classify = () => {
+    if (removed.length === 0 && added.length === 0) return 'unchanged-graph';
+    if (previous.contacts === next.contacts) return 'equal-count-rewire-candidate';
+    if (removed.length === 0) return 'contact-addition';
+    if (added.length === 0) return 'contact-removal';
+    return 'mixed-bond-count-change';
+  };
+  return {
+    model: 'contact-count-and-generic-planar-rigidity-comparison/v1',
+    provenance: 'unverified-supplied-structural-hypotheses',
+    caveat: 'No chemical associative exchange, 3-D mechanical rigidity, temperature or material phase is inferred.',
+    changeClass: classify(),
+    before: previous,
+    after: next,
+    contactEdits: { removed, added },
+    conservation: {
+      vertexCount: true,
+      contactCount: previous.contacts === next.contacts,
+      eulerIndex: previous.eulerIndex === next.eulerIndex,
+      meanCoordination: previous.contacts === next.contacts,
+      cycleRank: previous.cycleRank === next.cycleRank,
+      generic2dRank: previous.generic2dRank === next.generic2dRank,
+    },
+    differences: {
+      contacts: next.contacts - previous.contacts,
+      components: next.connectedComponents - previous.connectedComponents,
+      cycleRank: next.cycleRank - previous.cycleRank,
+      generic2dRank: next.generic2dRank - previous.generic2dRank,
+    },
+  };
+}
+
 function assayThreshold(phiGrid, threshold, structuralContacts = null) {
   const rows = phiGrid.length;
   const columns = phiGrid[0].length;
@@ -283,7 +376,7 @@ function assayThreshold(phiGrid, threshold, structuralContacts = null) {
 }
 
 export function runSiloxaneZeoliteRigidity(input) {
-  const { grid, sigmaMatrix, thresholds, rows, columns, structuralContacts }
+  const { grid, sigmaMatrix, thresholds, rows, columns, structuralContacts, beforeStructuralContacts }
     = validateSiloxaneZeoliteRigidityInput(input);
   // Saturated conductivity is exactly zero phi; short-circuit before
   // potentially overflowing sigma/sigmaMatrix at extreme finite scales.
@@ -304,7 +397,13 @@ export function runSiloxaneZeoliteRigidity(input) {
     input: {
       rows, columns, sigmaMatrix, thresholds,
       ...(structuralContacts === null ? {} : { structuralContacts }),
+      ...(beforeStructuralContacts === null ? {} : { beforeStructuralContacts }),
     },
+    ...(beforeStructuralContacts === null ? {} : {
+      contactStateComparison: comparePlanarContactStates(
+        rows * columns, beforeStructuralContacts, structuralContacts,
+      ),
+    }),
     phiGrid,
     sweep: thresholds.map((threshold) => assayThreshold(phiGrid, threshold, structuralContacts)),
   };
