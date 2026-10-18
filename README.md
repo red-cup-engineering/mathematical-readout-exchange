@@ -8,6 +8,38 @@ CoverNerve count arithmetic is not served here. It is the standalone,
 placement-independent logic die at
 `../cover-nerve-services-section/cover-nerve-rank-readout-service/`.
 
+
+## Zeolite–siloxane contact-graph research readout
+
+The **existing** `run-siloxane-zeolite-rigidity` entry point now accepts
+`structuralContacts`: undirected pairs of zero-based grid-site indices,
+`row * columns + column`. Omit it to retain the four-neighbor surrogate.
+Supply it only as an **explicit structural hypothesis**; measured conductivity
+does not by itself reveal which material regions are mechanically bonded.
+
+Run the five-site rigid member of the Materials ledger's fixed-count
+counterexample through the real local producer:
+
+```sh
+printf '%s\n' '{"conductivityGrid":[[0,0,0,0,0]],"sigmaMatrix":1,"thresholds":[0.5],"structuralContacts":[[0,1],[0,2],[1,2],[0,3],[1,3],[1,4],[2,4]]}' \
+  | node services/mathematical-readout-exchange/scripts/run-siloxane-zeolite-rigidity.mjs
+```
+
+Its `sweep[0].generic2dRigidity.rank` is **7**. Replacing the contacts
+with `[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3],[3,4]]`
+produces rank **6**, although both inputs have five vertices, seven
+contacts and cycle rank three. Thus counted coordination and Euler index
+do not predict planar rigidity. The same optional field is retained by
+the existing typed RMN/A2A request encoder; no separate service is added.
+
+The output's `contactGraph.provenance` distinguishes grid-inferred
+adjacency from unverified supplied contacts. The historical
+`pulsePlan.write140C` and `erase175CPlus` property names are retained
+for existing consumers, **not** validated fabrication recipes: the
+October 1 materials ledger retracts the proposed zeolite write/erase
+mechanism. Neither mode measures 3-D rigidity, molecular structure,
+crystalline volume, stress or the opposition signature.
+
 ## Local mathematical work, without an agent or theorem-checking ceremony
 
 The existing `@lenticule-science/mathematical-readout-exchange` package now
