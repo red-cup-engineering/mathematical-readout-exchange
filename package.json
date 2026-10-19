@@ -51,5 +51,9 @@
     "@red-cup-engineering/a2a-contracted-agent-service": "2.0.5",
     "@red-cup-engineering/a2a-task-state-custody-service": "1.0.5"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lenticule-science/mathematical-readout-exchange.git"
+  }
 }
