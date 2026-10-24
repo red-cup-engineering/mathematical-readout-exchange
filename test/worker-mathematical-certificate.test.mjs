@@ -17,7 +17,7 @@ test("Cloudflare A2A JSONRPC serves the original signed mathematical witness res
   body:JSON.stringify({jsonrpc:"2.0",id:"external-original-task",method:"message/send",params:{message}})
  });
  const response=await worker.fetch(request,{});
- assert.equal(response.status,200,await response.text());
+ assert.equal(response.status,200,await response.clone().text());
  const body=await response.json();
  assert.equal(body.id,"external-original-task");
  assert.equal(body.result.metadata.disposition,"completion");
