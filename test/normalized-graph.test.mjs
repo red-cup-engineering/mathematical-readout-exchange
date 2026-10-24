@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { normalizedGraphSummary, assertNormalizedGraphResult } from "../src/normalized-graph.mjs";
 import * as graphCertificate from "../src/normalized-graph.mjs";
+import { dischargeGeneric2dPebbleJudgment } from "../src/generic-2d-pebble-judgment.mjs";
 
 
 test("component, incidence and cycle ranks agree on a graph with an isolate",()=>{
@@ -154,6 +155,36 @@ test("a long source-ordered forest is verifiable without recursion or a quadrati
   assert.equal(cert.h0rank,1);
   assert.equal(cert.h1rank,0);
   assert.equal(graphCertificate.verifyGraphHomologyCertificate(cert,{vertices,edges}),cert);
+});
+
+// Original materials user Work: the actual zeolite–siloxane fixed-count
+// rigidity counterexample has two five-site, seven-contact graphs with equal
+// H0/H1 but different generic planar rigidity. A paid finite-graph witness
+// must not be marketed as certifying a stronger geometric property.
+test("same H0/H1 certificate cannot claim the Materials source's distinct rigidity ranks",()=>{
+  const vertices=["v00","v01","v02","v03","v04"];
+  const contacts=[
+    [[0,1],[0,2],[1,2],[0,3],[1,3],[1,4],[2,4]],
+    [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3],[3,4]],
+  ];
+  const sourcedGraphs=contacts.map(rows=>{
+    const edges=rows.map(([a,b])=>[vertices[a],vertices[b]])
+      .sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:a[1]<b[1]?-1:1);
+    return {vertices,edges};
+  });
+  const certificates=sourcedGraphs.map(graph=>graphCertificate.certifiedGraphHomology(
+    graph.vertices,graph.edges));
+  assert.deepEqual(certificates.map(x=>[x.h0rank,x.h1rank]),[[1,3],[1,3]]);
+  certificates.forEach((certificate,i)=>assert.equal(
+    graphCertificate.verifyGraphHomologyCertificate(certificate,sourcedGraphs[i]),certificate));
+  const rigidity=sourcedGraphs.map(graph=>dischargeGeneric2dPebbleJudgment({
+    atomId:"v00",vertices:graph.vertices,contacts:graph.edges,
+  }));
+  assert.deepEqual(rigidity.map(x=>x.accepted.length),[7,6],
+    "true source contact graphs distinguish a property H0/H1 does not assert");
+  assert.deepEqual(rigidity.map(x=>x.rejected.length),[0,1]);
+  assert.notDeepEqual(certificates[0].forestEdges,certificates[1].forestEdges,
+    "witness remembers source structure; same ranks are not identical inputs");
 });
 
 test("a canonical-looking partition cannot conceal repeated or missing graph entities", () => {
