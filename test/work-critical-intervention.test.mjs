@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { optimizeWorkCriticalIntervention } from "../src/work-critical-intervention.mjs";
 
 function forkedPortfolio() {
@@ -150,7 +151,7 @@ test("650 simultaneous Work vertices are admitted and the end-to-end math remain
 });
 
 test("real local graph readout CLI produces the same optimizer output",()=>{
-  const script=new URL("../scripts/readout-work-intervention.mjs",import.meta.url);
+  const script=fileURLToPath(new URL("../scripts/readout-work-intervention.mjs",import.meta.url));
   const result=spawnSync(process.execPath,[script],{
     input:JSON.stringify(forkedPortfolio()),encoding:"utf8",timeout:15000
   });
