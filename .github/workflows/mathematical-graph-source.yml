@@ -16,6 +16,11 @@ on:
       - test/client.test.mjs
       - test/relational-graph.test.mjs
       - test/worker-mathematical-certificate.test.mjs
+      - src/work-critical-intervention.mjs
+      - src/work-intervention-certificate.mjs
+      - scripts/readout-work-intervention.mjs
+      - test/work-critical-intervention.test.mjs
+      - package.json
       - .github/workflows/mathematical-graph-source.yml
   pull_request:
     paths:
@@ -30,6 +35,11 @@ on:
       - test/client.test.mjs
       - test/relational-graph.test.mjs
       - test/worker-mathematical-certificate.test.mjs
+      - src/work-critical-intervention.mjs
+      - src/work-intervention-certificate.mjs
+      - scripts/readout-work-intervention.mjs
+      - test/work-critical-intervention.test.mjs
+      - package.json
       - .github/workflows/mathematical-graph-source.yml
 permissions:
   contents: read
@@ -49,8 +59,8 @@ jobs:
       # This exact kernel/CLI has no external dependencies. It must work
       # independently of optional private A2A, RMN, Cloudflare or payment
       # packages. A green source test is not a live service or proof payout.
-      - name: Native exact math and CLI proof/refusal tests
-        run: node --test test/normalized-graph.test.mjs test/graph-cli.test.mjs
+      - name: Native graph homology and exact minimum-cost critical-work optimization
+        run: node --test test/normalized-graph.test.mjs test/graph-cli.test.mjs test/work-critical-intervention.test.mjs
       # The A2A adapter depends on separately versioned RMN/A2A providers.
       # Syntax here is not a pretend installed package or a signed live result.
       - name: Parse all existing signed-math client and Worker adapters

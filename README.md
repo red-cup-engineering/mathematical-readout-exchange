@@ -220,3 +220,107 @@ The A2A face is served by `bin/serve-a2a.mjs`; its executor is
 `bin/execute-a2a-task.mjs`. The Cloudflare carrier exposes only the normalized
 relational-graph operation. Neither carrier claims ActivityPub, x402, EVM
 settlement, or a service-performance receipt.
+
+## Mathematical Work optimization — not another task board
+
+The same Mathematical Readout Exchange now calculates an **exact minimum-cost
+intervention across every simultaneously critical Work dependency path**.
+For an original, buyer-supplied project dependency DAG with integer durations
+and marginal prices for a one-unit duration reduction, it computes:
+
+- earliest/latest start and finish, slack, one actual critical path and the
+  number of distinct critical paths;
+- a minimum-cost group of tasks whose joint acceleration shortens the entire
+  project, not merely one arbitrarily selected critical path;
+- the full project's conditional completion time after that intervention;
+- an independently checkable weighted-critical-path dual certificate showing
+  no cheaper intervention can achieve the same one-unit gain.
+
+**Mathematics and source:** This implements the original Engineering
+[Work-graph](https://github.com/red-cup-engineering/engineering-services-section/blob/main/content/text/glossary/concepts/work-graph.md)
+partial-order discipline. For a task v, earliest finish is its positive
+duration plus the maximum of its predecessors' earliest finish values.
+Backward latest starts identify the critical source/sink DAG. Selecting task
+accelerations that reduce the overall integer makespan by at least one is
+equivalent to finding a hitting set of every old critical path. Splitting
+task vertices into priced arcs makes this exactly a minimum-capacity cut.
+A residual max-flow establishes a lower bound, and the selected feasible
+source task cut is an upper bound. The code recomputes the full DAG afterward.
+
+The more important addition is the buyer verifier. The provider returns
+**actual source paths with nonnegative integer flow weights**, not a magic
+optimality boolean. The independent
+work-intervention-certificate module checks each original directed path and
+its weighted task-price constraints, plus recomputed full-plan improvement.
+The matching primal and dual costs establish minimum cost by weak duality
+without asking the buyer to rerun the optimizer. These proofs hold *only for
+the specified finite precedence model and supplied integer estimates*, not
+for a live customer's rights, staffing, market prices or physically available
+calendar hours.
+
+### Run a meaningful local Work calculation today
+
+This route is built into the existing mathematical service package, runs on
+Node 22/24 **without its optional A2A dependencies**, and makes no write,
+network call, payment or customer-state change:
+
+~~~sh
+node scripts/readout-work-intervention.mjs <<'JSON'
+{
+  "sourceRef": "https://github.com/red-cup-engineering/engineering-services-section/issues/137",
+  "durationUnit": "hypothetical-work-days",
+  "costUnit": "hypothetical-budget-points",
+  "budget": 2,
+  "tasks": [
+    {"id":"requirements","duration":3,"accelerateCost":4,"dependencies":[]},
+    {"id":"specification","duration":2,"accelerateCost":1,"dependencies":["requirements"]},
+    {"id":"architecture","duration":2,"accelerateCost":1,"dependencies":["requirements"]},
+    {"id":"fabrication","duration":3,"accelerateCost":4,"dependencies":["specification","architecture"]}
+  ]
+}
+JSON
+~~~
+
+Two independent eight-day critical paths cross the middle stages. Shortening
+only specification changes nothing; shortening only architecture changes
+nothing. The exact minimum is **2 hypothetical points** to shorten *both*,
+which makes the project **7 hypothetical workdays** long. Shortening their
+shared predecessor also works but costs **4** under this example input.
+These costs and durations are **examples**, not measured 561 Group work
+durations, a customer's quoted price or source-authenticated financial data.
+
+Save the original request and provider result together as a JSON object
+with keys request and result, then independently verify without max-flow:
+
+~~~sh
+node scripts/readout-work-intervention.mjs --verify < original-work-and-result.json
+~~~
+
+Outputs retain original Work IDs, optional source URLs, units, true slack,
+the one-unit acceleration plan, minimum price in the customer's declared
+units, and explicit finite-model limits. This is not an Asana, Jira, GitHub
+or MetroPlat adapter, an actual person/resource scheduler, or a claim that
+missing durations were inferred correctly from issue titles.
+
+### Capacity and next real buyer receiving
+
+The finite profile accepts up to **1,024 named Work tasks and 8,192
+prerequisite edges** per request, including competing critical paths.
+Substantive correctness is exercised against 90 independently enumerated
+small dependency graphs, the separate primal/dual proof verifier, and a
+650-task source-shaped Work graph. The existing [native Node 22/24
+source-and-CLI run](https://github.com/red-cup-engineering/mathematical-readout-exchange/actions/runs/40134805216)
+passed on both versions. An individual Node24 650-task read took about 8ms
+on one test runner; concurrent accepted customer results/hour, per-call
+billing, actual workload latency and cost remain unmeasured.
+
+The existing [561 Group Work-continuity audit](https://561.group/work/#agent-operations)
+has a **provisional $200** 20-record pilot estimate, not binding terms.
+This mathematics can add a genuine useful *conditional bottleneck and
+least-expensive acceleration certificate* to a buyer's scope **only if**
+their actual dependency data, source rights, duration assumptions and
+marginal costs are supplied and separately accepted. It is currently a
+working local mathematical producer and verifier, NOT a published payable
+x402 route, installed A2A release, independent buyer acceptance or earned
+sale. Causeway Market and the competent seller own future package
+selection, authority, measured delivery cost, quote, payment and settlement.
