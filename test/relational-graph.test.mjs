@@ -7,6 +7,7 @@ import {
   encodeRelationalGraphRequest,
   encodeRelationalGraphResult,
   executeRelationalGraphReadout,
+  RELATIONAL_GRAPH_CERTIFICATE,
 } from "../src/relational-graph-protocol.mjs";
 import { userRmnMessage } from "@red-cup-engineering/a2a-rmn-part-service";
 import { executeA2aMessage } from "../scripts/execute-a2a-task.mjs";
@@ -104,3 +105,26 @@ test("A2A executor serves normalized graph readout and refuses non-normalized in
     );
   }
 });
+
+test("typed RMN/A2A reads a source-bound independently checkable graph certificate",async()=>{
+  const graph={vertices:["a","b","c","d"],edges:[["a","b"],["a","c"],["b","c"]]};
+  const q=encodeRelationalGraphRequest({...graph,certificate:true});
+  const first=executeRelationalGraphReadout(q.bytes);
+  const next=executeRelationalGraphReadout(q.bytes);
+  assert.equal(first.id,next.id,"equal original source has one stable result NI");
+  const {value}=decodeRelationalGraphResult(first.bytes);
+  assert.equal(value.kind,RELATIONAL_GRAPH_CERTIFICATE.output);
+  assert.deepEqual(value.forestEdges,[["a","b"],["a","c"]]);
+  const {verifyGraphHomologyCertificate}=await import("../src/normalized-graph.mjs");
+  assert.equal(verifyGraphHomologyCertificate(value,graph),value);
+  const message=await executeA2aMessage(userRmnMessage(q.bytes,"relational-graph-certificate-request.rmn.cbor"));
+  assert.equal(message.metadata.disposition,"completion");
+  const received=decodeRelationalGraphResult(Buffer.from(message.parts[0].raw,"base64")).value;
+  assert.equal(verifyGraphHomologyCertificate(received,graph),received);
+  assert.equal(message.metadata.resourceEffects.settled,false);
+  const v1=decodeRelationalGraphResult(executeRelationalGraphReadout(
+    encodeRelationalGraphRequest(graph).bytes).bytes).value;
+  assert.equal(v1.kind,"NormalizedRelationalGraphReadoutResult.v1");
+  assert.equal(Object.hasOwn(v1,"forestEdges"),false);
+});
+
