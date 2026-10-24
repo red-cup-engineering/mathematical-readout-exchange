@@ -24,7 +24,7 @@ export async function readBoundedGraph(stream){
   try{
     const text=new TextDecoder("utf-8",{fatal:true}).decode(Buffer.concat(chunks,n));
     request=JSON.parse(text);
-  }catch{throw new TypeError("graph request must be valid UTF-8 JSON")}
+  }catch{throw new TypeError("graph request must be JSON encoded as valid UTF-8")}
   if(!request||typeof request!=="object"||Array.isArray(request)||
      Object.keys(request).sort().join(",")!=="edges,vertices")
     throw new TypeError("graph request must contain exactly vertices and edges");
