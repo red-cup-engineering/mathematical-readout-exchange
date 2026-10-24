@@ -2,6 +2,7 @@
 // Original mathematical-readout exchange, now with a directed work-DAG
 // operation. No A2A actor, allocation, purchase, or remote network effect.
 import { optimizeWorkCriticalIntervention } from "../src/work-critical-intervention.mjs";
+import { verifyOptimalWorkIntervention } from "../src/work-intervention-certificate.mjs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -30,12 +31,15 @@ export function runWorkIntervention(request) {
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  if(process.argv.length!==2){
-    console.error("usage: readout-work-intervention < source-work-graph.json");
+  if(process.argv.length!==2&&!(process.argv.length===3&&process.argv[2]==="--verify")){
+    console.error("usage: readout-work-intervention [--verify] < original-work-or-certificate.json");
     process.exitCode=2;
   }else try {
     const input=await receiveWorkCriticalIntervention(process.stdin);
-    process.stdout.write(JSON.stringify(runWorkIntervention(input))+"\n");
+    const result=process.argv[2]==="--verify"
+      ? verifyOptimalWorkIntervention(input.request,input.result)
+      :runWorkIntervention(input);
+    process.stdout.write(JSON.stringify(result)+"\n");
   }catch(error){
     console.error("mathematical work intervention refused: "+error.message);
     process.exitCode=1;
