@@ -63,6 +63,7 @@ test("unknown CLI options cannot turn a mathematical proof claim into code execu
 
 test("bounded ingress rejects oversize input and shape before computation",async()=>{
   await assert.rejects(()=>readBoundedGraph(Readable.from(["{bad"])),/must be JSON/);
+  await assert.rejects(()=>readBoundedGraph(Readable.from([Buffer.from([0xff,0xfe])])),/UTF-8|JSON/);
   await assert.rejects(()=>readBoundedGraph(Readable.from([Buffer.alloc(10*1024*1024+1,65)])),/10 MiB/);
   const vertices=Array.from({length:100001},(_,i)=>"v"+i);
   await assert.rejects(()=>readBoundedGraph(Readable.from([JSON.stringify({vertices,edges:[]})])),/size profile/);
