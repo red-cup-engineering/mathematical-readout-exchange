@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { assertNormalizedGraphResult } from "./normalized-graph.mjs";
+import { assertNormalizedGraphResult, verifyGraphHomologyCertificate } from "./normalized-graph.mjs";
 import { userRmnMessage, extractRmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
 import { a2aResultMetadata, a2aResultParts, sendRmnTask } from "@red-cup-engineering/a2a-rmn-task-client-service";
 import { SOVEREIGN_CIRCUIT_INTERFACE_EXTENSION } from "@red-cup-engineering/relation-model-notation-runtime/hierarchical-circuit";
@@ -37,20 +37,25 @@ async function requestReadout({ agentUrl, request, filename, decode, verify, sig
   });
 }
 
-export async function requestRelationalGraphReadout({ agentUrl, graph, signal, send = sendRmnTask }) {
+export async function requestRelationalGraphReadout({ agentUrl, graph, certificate = false, signal, send = sendRmnTask }) {
   // A caller can mutate graph during an asynchronous provider call; bind
   // validation to the exact graph submitted, not its later mutable object.
+  if (typeof certificate !== "boolean") throw new TypeError("graph certificate selection must be boolean");
   const submitted = {
     vertices: [...graph.vertices],
     edges: graph.edges.map(edge => [...edge]),
   };
-  const request = encodeRelationalGraphRequest(submitted);
+  const request = encodeRelationalGraphRequest({ ...submitted, certificate });
   return requestReadout({
     agentUrl,
     request,
-    filename: "relational-graph-request.rmn.cbor",
+    filename: certificate ? "relational-graph-certificate-request.rmn.cbor" : "relational-graph-request.rmn.cbor",
     decode: decodeRelationalGraphResult,
-    verify: result => assertNormalizedGraphResult(result, submitted),
+    // A signature and mathematically plausible numbers never replace the
+    // buyer's original source-graph-bound forest audit.
+    verify: result => certificate
+      ? verifyGraphHomologyCertificate(result, submitted)
+      : assertNormalizedGraphResult(result, submitted),
     signal,
     send,
   });
