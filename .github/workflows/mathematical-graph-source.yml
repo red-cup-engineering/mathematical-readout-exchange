@@ -17,6 +17,7 @@ on:
       - test/relational-graph.test.mjs
       - test/worker-mathematical-certificate.test.mjs
       - src/work-critical-intervention.mjs
+      - src/work-intervention-certificate.mjs
       - scripts/readout-work-intervention.mjs
       - test/work-critical-intervention.test.mjs
       - package.json
@@ -35,6 +36,7 @@ on:
       - test/relational-graph.test.mjs
       - test/worker-mathematical-certificate.test.mjs
       - src/work-critical-intervention.mjs
+      - src/work-intervention-certificate.mjs
       - scripts/readout-work-intervention.mjs
       - test/work-critical-intervention.test.mjs
       - package.json
