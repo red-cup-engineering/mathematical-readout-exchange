@@ -3,6 +3,7 @@ import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { optimizeWorkCriticalIntervention } from "../src/work-critical-intervention.mjs";
+import { verifyOptimalWorkIntervention } from "../src/work-intervention-certificate.mjs";
 
 function forkedPortfolio() {
   return {
@@ -31,6 +32,10 @@ test("one independently valuable all-critical-path decision saves less than acce
   assert.equal(result.forecastMakespan,7);
   assert.equal(result.conditionalReduction,1);
   assert.equal(result.proof.maxFlow,result.proof.minCut);
+  const independent=verifyOptimalWorkIntervention(forkedPortfolio(),result);
+  assert.equal(independent.valid,true);
+  assert.equal(independent.minimumSpend,"2");
+  assert.equal(independent.criticalPathWitnesses,2);
   const onlyOne=structuredClone(forkedPortfolio());
   onlyOne.tasks.find(t=>t.id==="specification").duration-=1;
   assert.equal(optimizeWorkCriticalIntervention(onlyOne).makespan,8,
@@ -111,9 +116,8 @@ test("minimum cost matches an independent exhaustive dependency-subset oracle",(
       if(allowed&&makespan(tasks,selected)<base
         &&(best===null||cost<best))best=cost;
     }
-    const actual=optimizeWorkCriticalIntervention({
-      durationUnit:"days",costUnit:"points",tasks,
-    });
+    const source={durationUnit:"days",costUnit:"points",tasks};
+    const actual=optimizeWorkCriticalIntervention(source);
     assert.equal(actual.makespan,base,"source forecast failed fixture "+fixture);
     if(best===null){
       assert.equal(actual.status,"NO_ONE_UNIT_ACCELERATION_AVAILABLE",
@@ -124,6 +128,8 @@ test("minimum cost matches an independent exhaustive dependency-subset oracle",(
       const chosen=new Set(actual.accelerate.map(x=>x.id));
       assert.ok(makespan(tasks,chosen)<base);
       assert.equal(actual.proof.maxFlow,String(best));
+      assert.equal(verifyOptimalWorkIntervention(source,actual).valid,true,
+        "an independent verifier could not certify optimum "+fixture);
     }
   }
 });
@@ -146,6 +152,9 @@ test("650 simultaneous Work vertices are admitted and the end-to-end math remain
   assert.equal(result.minimumSpend,"2");
   assert.deepEqual(result.accelerate.map(x=>x.id),["work-0000"]);
   assert.equal(result.forecastMakespan,649);
+  assert.equal(verifyOptimalWorkIntervention({
+    durationUnit:"days",costUnit:"points",tasks
+  },result).valid,true,"proof decomposes all paid path flow at original Work scale");
   console.log("Work bottleneck math: 650-node exact critical path and mincut, "+
     Math.round(elapsed)+"ms Node runtime; not accepted users or host capacity");
 });
@@ -159,4 +168,27 @@ test("real local graph readout CLI produces the same optimizer output",()=>{
   const actual=JSON.parse(result.stdout);
   assert.deepEqual(actual,optimizeWorkCriticalIntervention(forkedPortfolio()));
   assert.equal(actual.minimumSpend,"2");
+});
+
+test("customer verifies full paid mathematical certificate without recomputing maxflow",()=>{
+  const source=forkedPortfolio();
+  const report=optimizeWorkCriticalIntervention(source);
+  const independentlyChecked=verifyOptimalWorkIntervention(source,report);
+  assert.equal(independentlyChecked.valid,true);
+  assert.equal(independentlyChecked.minimumSpend,report.minimumSpend);
+  const script=fileURLToPath(new URL("../scripts/readout-work-intervention.mjs",import.meta.url));
+  const cli=spawnSync(process.execPath,[script,"--verify"],{
+    input:JSON.stringify({request:source,result:report}),encoding:"utf8",timeout:15000
+  });
+  assert.equal(cli.status,0,cli.stderr);
+  assert.deepEqual(JSON.parse(cli.stdout),independentlyChecked);
+  // A forged lower-bound witness cannot justify a cheaper intervention.
+  const forged=structuredClone(report);
+  forged.proof.dualCriticalPaths[0].weight="9999";
+  assert.throws(()=>verifyOptimalWorkIntervention(source,forged),
+    /work-intervention-certificate/u);
+  const drift=structuredClone(source);
+  drift.tasks.find(t=>t.id==="fabrication").duration+=1;
+  assert.throws(()=>verifyOptimalWorkIntervention(drift,report),
+    /work-intervention-certificate/u);
 });
