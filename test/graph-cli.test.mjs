@@ -7,7 +7,7 @@ import { Readable } from "node:stream";
 import { readBoundedGraph, runReadout } from "../scripts/readout-relational-graph.mjs";
 
 const cli=fileURLToPath(new URL("../scripts/readout-relational-graph.mjs",import.meta.url));
-const invoke=input=>spawnSync(process.execPath,[cli],{input,encoding:"utf8",timeout:8000,maxBuffer:3*1024*1024});
+const invoke=(input,flags=[])=>spawnSync(process.execPath,[cli,...flags],{input,encoding:"utf8",timeout:8000,maxBuffer:6*1024*1024});
 
 test("trusted math consumers get an exact JSON computation through the real executable",()=>{
   const result=invoke(JSON.stringify({vertices:["a","b","c","d"],edges:[["a","b"],["a","c"],["b","c"]]}));
@@ -34,6 +34,30 @@ test("the executable refuses malformed or unnormalized requests without leaking 
     assert.notEqual(result.status,0,source);
     assert.equal(result.stdout,"",source);
     assert.match(result.stderr,/refused/i);
+  }
+});
+
+
+test("the original executable delivers an optional source-verified mathematical certificate",()=>{
+  const graph={vertices:["a","b","c","d"],edges:[["a","b"],["a","c"],["b","c"]]};
+  const certified=invoke(JSON.stringify(graph),["--certificate"]);
+  assert.equal(certified.status,0,certified.stderr);
+  const certificate=JSON.parse(certified.stdout);
+  assert.equal(certificate.kind,"NormalizedGraphHomologyCertificate.v1");
+  assert.deepEqual(certificate.forestEdges,[["a","b"],["a","c"]]);
+  assert.deepEqual([certificate.h0rank,certificate.h1rank],[2,1]);
+  const {verifyGraphHomologyCertificate}=await import("../src/normalized-graph.mjs");
+  assert.equal(verifyGraphHomologyCertificate(certificate,graph),certificate);
+  const ordinary=JSON.parse(invoke(JSON.stringify(graph)).stdout);
+  assert.equal(ordinary.kind,"obsmetrologia.normalized-graph-local-readout/v1");
+  assert.equal(Object.hasOwn(ordinary,"forestEdges"),false);
+});
+test("unknown CLI options cannot turn a mathematical proof claim into code execution",()=>{
+  const input=JSON.stringify({vertices:["a"],edges:[]});
+  for(const flags of [["--eval"],["--certificate","--unknown"],["--run","arbitrary"]]){
+    const result=invoke(input,flags);
+    assert.notEqual(result.status,0);
+    assert.equal(result.stdout,"");
   }
 });
 
