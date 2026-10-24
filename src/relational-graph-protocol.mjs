@@ -7,12 +7,17 @@ import {
   semanticBytes,
 } from "@red-cup-engineering/relation-model-notation-runtime";
 import { computeCoverNerve } from "@lenticule-science/cover-nerve-rank-readout-service/function";
-import { normalizedGraphSummary, assertNormalizedGraphResult } from "./normalized-graph.mjs";
+import { normalizedGraphSummary, assertNormalizedGraphResult, certifiedGraphHomology } from "./normalized-graph.mjs";
 import { jsonId } from "./semantic-identity.mjs";
 
 export const RELATIONAL_GRAPH_READOUT = Object.freeze({
   input: "NormalizedRelationalGraphReadoutRequest.v1",
   output: "NormalizedRelationalGraphReadoutResult.v1",
+});
+// A separate opt-in mathematical result type; existing V1 bytes stay stable.
+export const RELATIONAL_GRAPH_CERTIFICATE = Object.freeze({
+  input: "NormalizedGraphHomologyCertificateRequest.v1",
+  output: "NormalizedGraphHomologyCertificate.v1",
 });
 
 function ascribedValue(value, objectKind) {
@@ -41,15 +46,16 @@ export function mathematicalReadoutRequestKind(bytes) {
   return decodeAscribedValue(bytes).value?.kind ?? null;
 }
 
-export function encodeRelationalGraphRequest({ vertices, edges }) {
-  return ascribedValue({ kind: RELATIONAL_GRAPH_READOUT.input, vertices, edges }, "lenticule.mathematical-readout.relational-graph-request");
+export function encodeRelationalGraphRequest({ vertices, edges, certificate = false }) {
+  if (typeof certificate !== "boolean") throw new TypeError("graph certificate selection must be boolean");
+  return ascribedValue({ kind: certificate ? RELATIONAL_GRAPH_CERTIFICATE.input : RELATIONAL_GRAPH_READOUT.input, vertices, edges }, "lenticule.mathematical-readout.relational-graph-request");
 }
 
 export function decodeRelationalGraphRequest(bytes) {
   const decoded = decodeAscribedValue(bytes);
   const value = decoded.value;
   if (
-    value?.kind !== RELATIONAL_GRAPH_READOUT.input
+    ![RELATIONAL_GRAPH_READOUT.input,RELATIONAL_GRAPH_CERTIFICATE.input].includes(value?.kind)
     || Object.keys(value).sort().join(",") !== "edges,kind,vertices"
   ) {
     const error = new Error(`relational-graph readout requires exactly one ${RELATIONAL_GRAPH_READOUT.input}`);
@@ -57,7 +63,10 @@ export function decodeRelationalGraphRequest(bytes) {
     throw error;
   }
   try {
-    return { ...decoded, value, summary: normalizedGraphSummary(value.vertices, value.edges) };
+    const certificate=value.kind===RELATIONAL_GRAPH_CERTIFICATE.input;
+    return { ...decoded, value, summary: certificate
+      ? certifiedGraphHomology(value.vertices, value.edges)
+      : normalizedGraphSummary(value.vertices, value.edges) };
   } catch (cause) {
     const error = new Error(cause.message, { cause });
     error.code = "invalid-relational-graph";
@@ -66,18 +75,25 @@ export function decodeRelationalGraphRequest(bytes) {
 }
 
 export function encodeRelationalGraphResult(readout) {
-  return ascribedValue({ kind: RELATIONAL_GRAPH_READOUT.output, ...readout }, "lenticule.mathematical-readout.relational-graph-result");
+  const kind=readout?.kind??RELATIONAL_GRAPH_READOUT.output;
+  if (![RELATIONAL_GRAPH_READOUT.output,RELATIONAL_GRAPH_CERTIFICATE.output].includes(kind))
+    throw new TypeError("unknown mathematical readout result kind");
+  return ascribedValue({ ...readout, kind }, "lenticule.mathematical-readout.relational-graph-result");
 }
 
 export function decodeRelationalGraphResult(bytes) {
   const decoded = decodeAscribedValue(bytes);
   const value = decoded.value;
-  if (value?.kind !== RELATIONAL_GRAPH_READOUT.output) {
-    const error = new Error(`relational-graph output is not ${RELATIONAL_GRAPH_READOUT.output}`);
+  if (![RELATIONAL_GRAPH_READOUT.output,RELATIONAL_GRAPH_CERTIFICATE.output].includes(value?.kind)) {
+    const error = new Error("unsupported mathematical relational-graph result kind");
     error.code = "wrong-die-output";
     throw error;
   }
   assertNormalizedGraphResult(value);
+  // The source-graph-bound witness is checked by the independent *buyer* after
+  // result decoding. An internally well-shaped signed output is not a proof.
+  if (value.kind === RELATIONAL_GRAPH_CERTIFICATE.output && !Array.isArray(value.forestEdges))
+    throw new TypeError("source-checkable graph certificate requires its forest");
   return decoded;
 }
 
@@ -86,6 +102,10 @@ export function executeRelationalGraphReadout(inputBytes) {
   // The validated summary is exact for the normalized simple-graph profile.
   // Weighted/Laplacian APIs remain separate for requests requiring matrices.
   const { summary } = input;
+  if(input.value.kind===RELATIONAL_GRAPH_CERTIFICATE.input){
+    const result=encodeRelationalGraphResult(summary);
+    return { inputId: jsonId(input.term, "lenticule.mathematical-readout.relational-graph-request"), ...result };
+  }
   const nerve = {
     entities: summary.entities,
     cells: summary.cells,
