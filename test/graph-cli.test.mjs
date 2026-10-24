@@ -38,7 +38,7 @@ test("the executable refuses malformed or unnormalized requests without leaking 
 });
 
 
-test("the original executable delivers an optional source-verified mathematical certificate",()=>{
+test("the original executable delivers an optional source-verified mathematical certificate",async()=>{
   const graph={vertices:["a","b","c","d"],edges:[["a","b"],["a","c"],["b","c"]]};
   const certified=invoke(JSON.stringify(graph),["--certificate"]);
   assert.equal(certified.status,0,certified.stderr);
