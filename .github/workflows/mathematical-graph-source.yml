@@ -1,0 +1,39 @@
+name: Exact mathematical graph source and certificate receiving
+on:
+  push:
+    branches:
+      - feat/proof-carrying-graph-readout-20261024
+      - main
+    paths:
+      - src/normalized-graph.mjs
+      - scripts/readout-relational-graph.mjs
+      - test/normalized-graph.test.mjs
+      - test/graph-cli.test.mjs
+      - .github/workflows/mathematical-graph-source.yml
+  pull_request:
+    paths:
+      - src/normalized-graph.mjs
+      - scripts/readout-relational-graph.mjs
+      - test/normalized-graph.test.mjs
+      - test/graph-cli.test.mjs
+      - .github/workflows/mathematical-graph-source.yml
+permissions:
+  contents: read
+jobs:
+  source-native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      # This exact kernel/CLI has no external dependencies. It must work
+      # independently of optional private A2A, RMN, Cloudflare or payment
+      # packages. A green source test is not a live service or proof payout.
+      - name: Native exact math and CLI proof/refusal tests
+        run: node --test test/normalized-graph.test.mjs test/graph-cli.test.mjs
