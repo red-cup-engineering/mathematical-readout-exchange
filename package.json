@@ -15,7 +15,8 @@
     },
     "./src/client.mjs": "./src/client.mjs",
     "./normalized-graph": "./src/normalized-graph.mjs",
-    "./work-critical-intervention": "./src/work-critical-intervention.mjs"
+    "./work-critical-intervention": "./src/work-critical-intervention.mjs",
+    "./work-intervention-certificate": "./src/work-intervention-certificate.mjs"
   },
   "keywords": [
     "a2a",
