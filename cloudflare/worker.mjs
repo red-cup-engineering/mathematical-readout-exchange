@@ -10,6 +10,7 @@ import {
   executeRelationalGraphReadout,
   mathematicalReadoutRequestKind,
   RELATIONAL_GRAPH_READOUT,
+  RELATIONAL_GRAPH_CERTIFICATE,
 } from "../src/relational-graph-protocol.mjs";
 import { readBoundedA2aJson, decodeBoundedRmnRaw, verifiedRequestNi } from "./request-guards.mjs";
 
@@ -68,7 +69,7 @@ async function signedAgentCard(request, env) {
     { url: `${origin}/a2a/jsonrpc`, protocolBinding: "JSONRPC", tenant: "", protocolVersion: "1.0" },
     { url: `${origin}/a2a/rest`, protocolBinding: "HTTP+JSON", tenant: "", protocolVersion: "1.0" },
   ];
-  card.skills[0].description = "Accepts exactly one canonical normalized relational-graph RMN value and returns its deterministic metrology result plus separately qualified release and resource metadata.";
+  card.skills[0].description = "Accepts one canonical normalized graph RMN readout or opt-in spanning-forest H0/H1 certificate request; returns source-checkable mathematical values, qualified release and measured resource metadata. Certificate acceptance requires the buyer to check against its original graph.";
   card.signatures = [];
   const normalized = AgentCard.toJSON(AgentCard.fromJSON(card));
   delete normalized.signatures;
@@ -111,9 +112,10 @@ function executeMessage(source) {
   const started = performance.now();
   let result;
   let filename;
-  if (requestKind === RELATIONAL_GRAPH_READOUT.input) {
+  if (requestKind === RELATIONAL_GRAPH_READOUT.input || requestKind === RELATIONAL_GRAPH_CERTIFICATE.input) {
     result = executeRelationalGraphReadout(inputBytes);
-    filename = "relational-graph-result.rmn.cbor";
+    filename = requestKind === RELATIONAL_GRAPH_CERTIFICATE.input
+      ? "relational-graph-certificate.rmn.cbor" : "relational-graph-result.rmn.cbor";
   } else {
     throw new Error(`unsupported mathematical-readout kind ${requestKind ?? "[absent]"}`);
   }
@@ -134,6 +136,10 @@ function executeMessage(source) {
       requestNi: verifiedRequestNi(input.metadata?.ni, result.inputId),
       responseNi: result.id,
       mathematicalSourceCertificate: SOURCE_CERTIFICATE,
+      ...(requestKind === RELATIONAL_GRAPH_CERTIFICATE.input ? { graphWitness: {
+        kind: "spanning-forest-H0-H1", independentlyBuyerVerified: false,
+        requiresOriginalGraph: true, kernelFormalized: false,
+      } } : {}),
       resourceEffects: {
         dimension: "time",
         quantity: String(elapsed),
