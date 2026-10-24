@@ -123,10 +123,14 @@ function schedule(compiled,durations) {
 function minimumVertexCut(compiled,analysis,critical,criticalPre,criticalSucc) {
   const n=compiled.tasks.length,source=2*n,target=2*n+1;
   const graph=Array.from({length:2*n+2},()=>[]);
+  // Retain the *original directed forward* arcs so a buyer can inspect the
+  // exact primal flow as a bundle of weighted critical-path witnesses.
+  const forward=Array.from({length:2*n+2},()=>[]);
   const add=(from,to,capacity)=>{
     const f={to,cap:capacity,rev:graph[to].length};
-    const b={to:from,cap:0n,rev:graph[from].length};
-    graph[from].push(f);graph[to].push(b);
+    const back={to:from,cap:0n,rev:graph[from].length};
+    graph[from].push(f);graph[to].push(back);
+    forward[from].push(f);
   };
   const potential=critical.reduce((sum,i)=>{
     const task=compiled.tasks[i];
@@ -186,7 +190,50 @@ function minimumVertexCut(compiled,analysis,critical,criticalPre,criticalSucc) {
   const cut=critical.filter(i=>reach.has(2*i)&&!reach.has(2*i+1));
   const cost=cut.reduce((s,i)=>s+BigInt(compiled.tasks[i].accelerateCost),0n);
   if(cost!==flow)throw new Error("work-critical-intervention: min cut and max flow disagree");
-  return {possible:true,minCost:cost,cut,flow};
+
+  // Flow decomposition is a separately checkable LOWER BOUND on the minimum
+  // hitting-set cost. A unit of flow travels along a real maximum-duration
+  // source→sink work path and consumes task-cut capacity. Every hitting set
+  // must therefore cost >= total flow. Equality to the proposed cut cost
+  // proves optimality without trusting a solver's certificate-shaped number.
+  const remain=new Map();
+  for(let v=0;v<forward.length;v++)for(const e of forward[v]){
+    const amount=graph[e.to][e.rev].cap;
+    if(amount>0n)remain.set(e,amount);
+  }
+  const dualPaths=[];
+  let unreported=flow;
+  function trace(v,walk,visited) {
+    if(v===target)return true;
+    visited.add(v);
+    for(const e of forward[v])if((remain.get(e)??0n)>0n&&!visited.has(e.to)){
+      walk.push({from:v,edge:e});
+      if(trace(e.to,walk,visited))return true;
+      walk.pop();
+    }
+    visited.delete(v);
+    return false;
+  }
+  while(unreported>0n) {
+    const arcs=[];
+    if(!trace(source,arcs,new Set()))throw new Error(
+      "work-critical-intervention: cannot decompose original maxflow witness");
+    const weight=arcs.reduce((minimum,{edge})=>{
+      const available=remain.get(edge);
+      return available<minimum?available:minimum;
+    },unreported);
+    if(weight<=0n)throw new Error("work-critical-intervention: empty dual path weight");
+    const taskIds=arcs.filter(({from,edge})=>
+      from<2*n&&from%2===0&&edge.to===from+1)
+      .map(({from})=>compiled.tasks[from/2].id);
+    if(taskIds.length===0)throw new Error("work-critical-intervention: dual path has no source tasks");
+    for(const {edge} of arcs)remain.set(edge,remain.get(edge)-weight);
+    dualPaths.push(Object.freeze({taskIds:Object.freeze(taskIds),weight:weight.toString()}));
+    unreported-=weight;
+    if(dualPaths.length>LIMIT_EDGES+LIMIT_TASKS)throw new Error(
+      "work-critical-intervention: excessive source flow decomposition");
+  }
+  return {possible:true,minCost:cost,cut,flow,dualPaths:Object.freeze(dualPaths)};
 }
 
 /** Minimum-cost set of one-unit task accelerations that shortens the whole
@@ -276,6 +323,7 @@ export function optimizeWorkCriticalIntervention(request) {
     proof:Object.freeze({
       claim:"finite vertex-split max-flow/min-cut dual for all original critical paths",
       maxFlow:solved.flow.toString(),minCut:solved.minCost.toString(),
+      dualCriticalPaths:solved.dualPaths,
       witness:"the selected one-unit task reductions were independently re-evaluated on the original full DAG",
       formalKernelChecked:false,
     }),
