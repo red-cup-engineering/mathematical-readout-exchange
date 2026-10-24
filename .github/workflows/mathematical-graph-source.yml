@@ -9,6 +9,13 @@ on:
       - scripts/readout-relational-graph.mjs
       - test/normalized-graph.test.mjs
       - test/graph-cli.test.mjs
+      - src/client.mjs
+      - src/relational-graph-protocol.mjs
+      - scripts/execute-a2a-task.mjs
+      - cloudflare/worker.mjs
+      - test/client.test.mjs
+      - test/relational-graph.test.mjs
+      - test/worker-mathematical-certificate.test.mjs
       - .github/workflows/mathematical-graph-source.yml
   pull_request:
     paths:
@@ -16,6 +23,13 @@ on:
       - scripts/readout-relational-graph.mjs
       - test/normalized-graph.test.mjs
       - test/graph-cli.test.mjs
+      - src/client.mjs
+      - src/relational-graph-protocol.mjs
+      - scripts/execute-a2a-task.mjs
+      - cloudflare/worker.mjs
+      - test/client.test.mjs
+      - test/relational-graph.test.mjs
+      - test/worker-mathematical-certificate.test.mjs
       - .github/workflows/mathematical-graph-source.yml
 permissions:
   contents: read
@@ -37,3 +51,13 @@ jobs:
       # packages. A green source test is not a live service or proof payout.
       - name: Native exact math and CLI proof/refusal tests
         run: node --test test/normalized-graph.test.mjs test/graph-cli.test.mjs
+      # The A2A adapter depends on separately versioned RMN/A2A providers.
+      # Syntax here is not a pretend installed package or a signed live result.
+      - name: Parse all existing signed-math client and Worker adapters
+        run: |
+          for file in src/client.mjs src/relational-graph-protocol.mjs \
+              scripts/execute-a2a-task.mjs cloudflare/worker.mjs \
+              test/client.test.mjs test/relational-graph.test.mjs \
+              test/worker-mathematical-certificate.test.mjs; do
+            node --check "$file"
+          done
