@@ -23,8 +23,8 @@
  * theorem receipt, authorized staffing change, cost quotation or sale.
  */
 
-const LIMIT_TASKS = 256;
-const LIMIT_EDGES = 4096;
+const LIMIT_TASKS = 1024;
+const LIMIT_EDGES = 8192;
 const COST_MAX = 1_000_000_000;
 const DURATION_MAX = 1_000_000_000;
 
@@ -35,7 +35,7 @@ const natural = (n, bound) => Number.isSafeInteger(n) && n >= 0 && n <= bound;
 function compile(request) {
   requireInput(request && typeof request === "object" && !Array.isArray(request)
     && Array.isArray(request.tasks) && request.tasks.length >= 1
-    && request.tasks.length <= LIMIT_TASKS, "requires 1–256 actual source tasks");
+    && request.tasks.length <= LIMIT_TASKS, "requires 1–1024 actual source tasks");
   for (const label of ["durationUnit", "costUnit"]) requireInput(
     typeof request[label] === "string" && request[label].length >= 1
       && request[label].length <= 80 && !/[\r\n\u0000]/u.test(request[label]),
