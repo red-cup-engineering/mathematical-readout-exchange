@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { normalizedGraphSummary, assertNormalizedGraphResult } from "../src/normalized-graph.mjs";
+import * as graphCertificate from "../src/normalized-graph.mjs";
+import { dischargeGeneric2dPebbleJudgment } from "../src/generic-2d-pebble-judgment.mjs";
+
 
 test("component, incidence and cycle ranks agree on a graph with an isolate",()=>{
   const vertices=["a","b","c","d"];
@@ -70,6 +73,118 @@ test("remote mathematical readout must satisfy graph Euler/homology identities",
     assert.throws(() => assertNormalizedGraphResult({ ...valid, ...altered }),
       /(homology ranks|integer ranks|canonical component partition)/);
   }
+});
+
+
+// Graph-homology certificate contract: mathematical witnesses rather than
+// a provider's self-reported H0/H1 scalar. These are source-only finite tests;
+// independent input/output/rights and external payment remain downstream.
+test("an independently checkable spanning forest witnesses exact H0/H1 without a second graph service", () => {
+  const vertices=["a","b","c","d"];
+  const edges=[["a","b"],["a","c"],["b","c"]];
+  const untouched=structuredClone({vertices,edges});
+  const certificate=graphCertificate.certifiedGraphHomology(vertices,edges);
+  assert.equal(certificate.kind,"NormalizedGraphHomologyCertificate.v1");
+  assert.deepEqual(certificate.forestEdges,[["a","b"],["a","c"]]);
+  assert.deepEqual(certificate.componentPartition,[["a","b","c"],["d"]]);
+  assert.deepEqual([certificate.h0rank,certificate.h1rank],[2,1]);
+  assert.equal(graphCertificate.verifyGraphHomologyCertificate(certificate,{vertices,edges}),certificate);
+  assert.deepEqual({vertices,edges},untouched);
+  assert.deepEqual(
+    [certificate.entities,certificate.cells,certificate.components,certificate.exactRank,certificate.harmonicRank],
+    Object.values(normalizedGraphSummary(vertices,edges)).slice(0,5)
+  );
+});
+
+test("a falsely certified result is refused even when its Euler counts remain plausible", () => {
+  const vertices=["a","b","c","d"];
+  const edges=[["a","b"],["a","c"],["b","c"]];
+  const cert=graphCertificate.certifiedGraphHomology(vertices,edges);
+  const mutated=changes=>({...cert,...changes});
+  const bad=[
+    mutated({forestEdges:[["a","b"]]}), // no complete spanning forest
+    mutated({forestEdges:[["a","b"],["b","c"],["a","c"]]}), // cycle
+    mutated({forestEdges:[["a","b"],["c","d"]]}), // fabricated input edge
+    mutated({forestEdges:[["b","a"],["a","c"]]}), // noncanonical source edge
+    mutated({forestEdges:[["a","b"],["a","b"]]}), // duplicate
+    mutated({forestEdges:[["a","b"],["b","c"]],componentPartition:[["a","b"],["c","d"]]}), // forged partition
+    mutated({h1rank:2}), // wrong H1
+  ];
+  for(const counterfeit of bad){
+    assert.throws(()=>graphCertificate.verifyGraphHomologyCertificate(
+      counterfeit,{vertices,edges}),/certificate|forest|graph|canonical|rank|source/i);
+  }
+  // A different valid original source is *not* the graph that was received.
+  assert.throws(()=>graphCertificate.verifyGraphHomologyCertificate(cert,{
+    vertices,edges:[["a","b"],["b","c"]]
+  }),/certificate|forest|graph|source/i);
+});
+
+test("all 64 simple four-vertex graphs agree with an independent queue-based component oracle",()=>{
+  const vertices=["a","b","c","d"];
+  const allEdges=[["a","b"],["a","c"],["a","d"],["b","c"],["b","d"],["c","d"]];
+  const independentComponents=(edges)=>{
+    const neighbors=new Map(vertices.map(v=>[v,[]]));
+    for(const [a,b] of edges){neighbors.get(a).push(b);neighbors.get(b).push(a);}
+    const seen=new Set();let count=0;
+    for(const first of vertices){
+      if(seen.has(first))continue;
+      count++;const queue=[first];seen.add(first);
+      for(let i=0;i<queue.length;i++)for(const v of neighbors.get(queue[i])){
+        if(!seen.has(v)){seen.add(v);queue.push(v);}
+      }
+    }
+    return count;
+  };
+  for(let mask=0;mask<64;mask++){
+    const edges=allEdges.filter((_,i)=>(mask&(1<<i))!==0);
+    const cert=graphCertificate.certifiedGraphHomology(vertices,edges);
+    const c=independentComponents(edges);
+    assert.equal(cert.h0rank,c,"mask "+mask);
+    assert.equal(cert.h1rank,edges.length-vertices.length+c,"mask "+mask);
+    assert.equal(graphCertificate.verifyGraphHomologyCertificate(
+      cert,{vertices,edges}),cert,"mask "+mask);
+  }
+});
+
+test("a long source-ordered forest is verifiable without recursion or a quadratic adjacency matrix",()=>{
+  const vertices=Array.from({length:12000},(_,i)=>"v"+String(i).padStart(5,"0"));
+  const edges=vertices.slice(1).map((v,i)=>[vertices[i],v]);
+  const cert=graphCertificate.certifiedGraphHomology(vertices,edges);
+  assert.equal(cert.forestEdges.length,11999);
+  assert.equal(cert.h0rank,1);
+  assert.equal(cert.h1rank,0);
+  assert.equal(graphCertificate.verifyGraphHomologyCertificate(cert,{vertices,edges}),cert);
+});
+
+// Original materials user Work: the actual zeolite–siloxane fixed-count
+// rigidity counterexample has two five-site, seven-contact graphs with equal
+// H0/H1 but different generic planar rigidity. A paid finite-graph witness
+// must not be marketed as certifying a stronger geometric property.
+test("same H0/H1 certificate cannot claim the Materials source's distinct rigidity ranks",()=>{
+  const vertices=["v00","v01","v02","v03","v04"];
+  const contacts=[
+    [[0,1],[0,2],[1,2],[0,3],[1,3],[1,4],[2,4]],
+    [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3],[3,4]],
+  ];
+  const sourcedGraphs=contacts.map(rows=>{
+    const edges=rows.map(([a,b])=>[vertices[a],vertices[b]])
+      .sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:a[1]<b[1]?-1:1);
+    return {vertices,edges};
+  });
+  const certificates=sourcedGraphs.map(graph=>graphCertificate.certifiedGraphHomology(
+    graph.vertices,graph.edges));
+  assert.deepEqual(certificates.map(x=>[x.h0rank,x.h1rank]),[[1,3],[1,3]]);
+  certificates.forEach((certificate,i)=>assert.equal(
+    graphCertificate.verifyGraphHomologyCertificate(certificate,sourcedGraphs[i]),certificate));
+  const rigidity=sourcedGraphs.map(graph=>dischargeGeneric2dPebbleJudgment({
+    atomId:"v00",vertices:graph.vertices,contacts:graph.edges,
+  }));
+  assert.deepEqual(rigidity.map(x=>x.accepted.length),[7,6],
+    "true source contact graphs distinguish a property H0/H1 does not assert");
+  assert.deepEqual(rigidity.map(x=>x.rejected.length),[0,1]);
+  assert.notDeepEqual(certificates[0].forestEdges,certificates[1].forestEdges,
+    "witness remembers source structure; same ranks are not identical inputs");
 });
 
 test("a canonical-looking partition cannot conceal repeated or missing graph entities", () => {

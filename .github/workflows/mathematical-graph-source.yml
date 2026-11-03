@@ -1,0 +1,63 @@
+name: Exact mathematical graph source and certificate receiving
+on:
+  push:
+    branches:
+      - feat/proof-carrying-graph-readout-20261024
+      - main
+    paths:
+      - src/normalized-graph.mjs
+      - scripts/readout-relational-graph.mjs
+      - test/normalized-graph.test.mjs
+      - test/graph-cli.test.mjs
+      - src/client.mjs
+      - src/relational-graph-protocol.mjs
+      - scripts/execute-a2a-task.mjs
+      - cloudflare/worker.mjs
+      - test/client.test.mjs
+      - test/relational-graph.test.mjs
+      - test/worker-mathematical-certificate.test.mjs
+      - .github/workflows/mathematical-graph-source.yml
+  pull_request:
+    paths:
+      - src/normalized-graph.mjs
+      - scripts/readout-relational-graph.mjs
+      - test/normalized-graph.test.mjs
+      - test/graph-cli.test.mjs
+      - src/client.mjs
+      - src/relational-graph-protocol.mjs
+      - scripts/execute-a2a-task.mjs
+      - cloudflare/worker.mjs
+      - test/client.test.mjs
+      - test/relational-graph.test.mjs
+      - test/worker-mathematical-certificate.test.mjs
+      - .github/workflows/mathematical-graph-source.yml
+permissions:
+  contents: read
+jobs:
+  source-native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      # This exact kernel/CLI has no external dependencies. It must work
+      # independently of optional private A2A, RMN, Cloudflare or payment
+      # packages. A green source test is not a live service or proof payout.
+      - name: Native exact math and CLI proof/refusal tests
+        run: node --test test/normalized-graph.test.mjs test/graph-cli.test.mjs
+      # The A2A adapter depends on separately versioned RMN/A2A providers.
+      # Syntax here is not a pretend installed package or a signed live result.
+      - name: Parse all existing signed-math client and Worker adapters
+        run: |
+          for file in src/client.mjs src/relational-graph-protocol.mjs \
+              scripts/execute-a2a-task.mjs cloudflare/worker.mjs \
+              test/client.test.mjs test/relational-graph.test.mjs \
+              test/worker-mathematical-certificate.test.mjs; do
+            node --check "$file"
+          done

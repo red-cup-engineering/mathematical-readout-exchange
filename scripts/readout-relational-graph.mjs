@@ -2,7 +2,7 @@
 // Local, bounded math readout for existing 561 Group offices. It consumes
 // normalized JSON, not arbitrary code, and does not expose an HTTP listener
 // or claim the signed A2A/CBOR service authority.
-import { normalizedGraphSummary } from "../src/normalized-graph.mjs";
+import { normalizedGraphSummary, certifiedGraphHomology } from "../src/normalized-graph.mjs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,8 +21,10 @@ export async function readBoundedGraph(stream){
   }
   if(n===0)throw new TypeError("graph request is empty");
   let request;
-  try{request=JSON.parse(Buffer.concat(chunks,n).toString("utf8"))}
-  catch{throw new TypeError("graph request must be JSON")}
+  try{
+    const text=new TextDecoder("utf-8",{fatal:true}).decode(Buffer.concat(chunks,n));
+    request=JSON.parse(text);
+  }catch{throw new TypeError("graph request must be JSON encoded as valid UTF-8")}
   if(!request||typeof request!=="object"||Array.isArray(request)||
      Object.keys(request).sort().join(",")!=="edges,vertices")
     throw new TypeError("graph request must contain exactly vertices and edges");
@@ -33,7 +35,12 @@ export async function readBoundedGraph(stream){
   return request;
 }
 
-export function runReadout({vertices,edges}){
+/** Source-origin normalized graph remains the only mathematical producer. */
+export function runReadout({vertices,edges},{certificate=false}={}){
+  if(certificate!==true&&certificate!==false)
+    throw new TypeError("graph certificate mode must be a boolean");
+  if(certificate)
+    return certifiedGraphHomology(vertices,edges);
   const result=normalizedGraphSummary(vertices,edges);
   return Object.freeze({
     kind:"obsmetrologia.normalized-graph-local-readout/v1",
@@ -44,12 +51,14 @@ export function runReadout({vertices,edges}){
 }
 
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  if(process.argv.length!==2){
-    console.error("usage: readout-relational-graph < normalized-graph.json");
+  const args=process.argv.slice(2);
+  const certified=args.length===1&&args[0]==="--certificate";
+  if(args.length>0&&!certified){
+    console.error("usage: readout-relational-graph [--certificate] < normalized-graph.json");
     process.exitCode=2;
   }else try{
     const graph=await readBoundedGraph(process.stdin);
-    process.stdout.write(JSON.stringify(runReadout(graph))+"\n");
+    process.stdout.write(JSON.stringify(runReadout(graph,{certificate:certified}))+"\n");
   }catch(error){
     console.error("graph readout refused: "+error.message);
     process.exitCode=1;

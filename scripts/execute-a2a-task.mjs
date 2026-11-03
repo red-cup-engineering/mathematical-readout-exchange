@@ -11,6 +11,7 @@ import {
   executeRelationalGraphReadout,
   mathematicalReadoutRequestKind,
   RELATIONAL_GRAPH_READOUT,
+  RELATIONAL_GRAPH_CERTIFICATE,
 } from "../src/relational-graph-protocol.mjs";
 import {
   executeSiloxaneZeoliteRigidityReadout,
@@ -30,9 +31,10 @@ function measuredReadout(inputBytes) {
   const requestKind = mathematicalReadoutRequestKind(inputBytes);
   let dieResult;
   let filename;
-  if (requestKind === RELATIONAL_GRAPH_READOUT.input) {
+  if (requestKind === RELATIONAL_GRAPH_READOUT.input || requestKind === RELATIONAL_GRAPH_CERTIFICATE.input) {
     dieResult = executeRelationalGraphReadout(inputBytes);
-    filename = "relational-graph-result.rmn.cbor";
+    filename = requestKind === RELATIONAL_GRAPH_CERTIFICATE.input
+      ? "relational-graph-certificate.rmn.cbor" : "relational-graph-result.rmn.cbor";
   } else if (requestKind === SILOXANE_ZEOLITE_RIGIDITY.input) {
     dieResult = executeSiloxaneZeoliteRigidityReadout(inputBytes);
     filename = "siloxane-zeolite-rigidity-surrogate2d-result.rmn.cbor";
@@ -47,6 +49,7 @@ function measuredReadout(inputBytes) {
     dieResult,
     filename,
     certificate: attestCoverNerveSources(),
+    graphWitness: requestKind === RELATIONAL_GRAPH_CERTIFICATE.input,
     resourceEffects: {
       "fuel-consumed": exactFraction(cpu.user + cpu.system, 1_000_000),
       "wall-time-seconds": exactFraction(wallNanoseconds, 1_000_000_000),
@@ -72,6 +75,10 @@ export async function executeA2aMessage(source) {
       requestNi: input.ni,
       responseNi: result.dieResult.id,
       mathematicalSourceCertificate: result.certificate,
+      ...(result.graphWitness ? { graphWitness: {
+        kind: "spanning-forest-H0-H1", independentlyBuyerVerified: false,
+        requiresOriginalGraph: true, kernelFormalized: false,
+      } } : {}),
       resourceEffects: result.resourceEffects,
     },
     extensions: [],
